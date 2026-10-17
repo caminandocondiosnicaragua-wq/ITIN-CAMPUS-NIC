@@ -81,6 +81,7 @@
     submitButton.hidden = position !== active.length - 1;
     consentContainer.hidden = position !== active.length - 1;
     alertBox.hidden = true;
+    updateGuide();
     if (currentStep === 3 && !isMasters()) updateInterviewForProgram();
   }
 
@@ -209,17 +210,139 @@
     });
   });
 
-  form.addEventListener('submit', event => {
+  form.addEventListener('submit', async event => {
     event.preventDefault();
     if (!validateCurrentStep()) return;
-    if (!form.querySelector('[name="Confirmacion"]').checked) {
-      form.querySelector('[name="Confirmacion"]').reportValidity();
+    const confirmation = form.querySelector('[name="Confirmacion"]:not([disabled])');
+    if (confirmation && !confirmation.checked) {
+      confirmation.reportValidity();
       return;
     }
-    alertBox.textContent = 'La solicitud aún no se ha enviado ni guardado. Las preguntas pueden consultarse desde la API si el navegador permite la conexión, pero el envío completo y la carga segura de documentos todavía deben integrarse y probarse antes de recibir solicitudes reales.';
+    // Do not clear the local draft until the server confirms a complete save.
+    alertBox.textContent = 'El envío aún requiere confirmar el contrato de datos del receptor de Apps Script. Tu avance permanece guardado en este dispositivo; no se borrará por un intento fallido.';
     alertBox.hidden = false;
     alertBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
   });
+
+  // Guía contextual fija debajo del panel de progreso.
+  const guideTitle = document.getElementById('guide-title');
+  const guideHeading = document.getElementById('guide-heading');
+  const guideMessage = document.getElementById('guide-message');
+  const guideTip = document.getElementById('guide-tip');
+  const cacheStatus = document.getElementById('cache-status');
+  const guideContent = [
+    {title:'Datos personales',heading:'Empecemos por ti',message:'Escribe tus datos tal como aparecen en tus documentos y utiliza un correo y teléfono donde podamos contactarte.',tip:'Consejo: revisa la fecha de nacimiento, el número de cédula y el programa antes de continuar.'},
+    {title:'Información de la iglesia',heading:'Cuéntanos de tu comunidad',message:'Indica la iglesia donde congregas y los datos ministeriales solicitados. Si algún campo no corresponde a tu situación, no inventes información.',tip:'Consejo: verifica la escritura del nombre de la iglesia y del pastor.'},
+    {title:'Documentos',heading:'Prepara imágenes claras',message:'Puedes seleccionar una imagen o usar la cámara del teléfono. Comprueba que el texto se vea completo, con buena luz y sin reflejos.',tip:'Formatos admitidos: PNG, JPG y JPEG. El envío seguro de archivos se habilitará al terminar la integración del servidor.'},
+    {title:'Realizar entrevista',heading:'Responde con tus palabras',message:'Lee cada pregunta y responde con sinceridad y claridad. Las preguntas corresponden al programa seleccionado; Maestría no incluye entrevista.',tip:'Consejo: puedes regresar a las etapas anteriores; tu avance se conserva en este dispositivo.'}
+  ];
+  function updateGuide() {
+    const item = guideContent[currentStep] || guideContent[0];
+    if (guideTitle) guideTitle.textContent = item.title;
+    if (guideHeading) guideHeading.textContent = item.heading;
+    if (guideMessage) guideMessage.textContent = item.message;
+    if (guideTip) guideTip.textContent = item.tip;
+  }
+
+  const DRAFT_DB = 'itin-campus-drafts-v1';
+  const DRAFT_STORE = 'solicitud';
+  const DRAFT_KEY = 'solicitud-actual';
+  let draftDbPromise;
+  function openDraftDb() {
+    if (!('indexedDB' in window)) return Promise.reject(new Error('Este navegador no permite guardar el borrador.'));
+    if (!draftDbPromise) draftDbPromise = new Promise((resolve, reject) => {
+      const request = indexedDB.open(DRAFT_DB, 1);
+      request.onupgradeneeded = () => request.result.createObjectStore(DRAFT_STORE);
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+    return draftDbPromise;
+  }
+  async function draftTransaction(mode, action) {
+    const db = await openDraftDb();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(DRAFT_STORE, mode);
+      const store = tx.objectStore(DRAFT_STORE);
+      let result;
+      try { result = action(store); } catch (error) { reject(error); return; }
+      tx.oncomplete = () => resolve(result && result.result);
+      tx.onerror = () => reject(tx.error || new Error('No se pudo guardar el borrador.'));
+      tx.onabort = () => reject(tx.error || new Error('Se canceló el guardado local.'));
+    });
+  }
+  function collectDraft() {
+    const fields = {};
+    [...form.elements].forEach(field => {
+      if (!field.name || field.type === 'file' || field.type === 'submit' || field.type === 'button') return;
+      if (field.type === 'checkbox' || field.type === 'radio') {
+        if (field.name === 'Confirmacion') return;
+        fields[field.name] = field.checked;
+      } else fields[field.name] = field.value;
+    });
+    return {fields, currentStep, savedAt: new Date().toISOString()};
+  }
+  let saveDraftTimer;
+  async function saveDraft() {
+    if (!form) return;
+    clearTimeout(saveDraftTimer);
+    saveDraftTimer = setTimeout(async () => {
+      try {
+        const draft = collectDraft();
+        // Store selected image blobs in IndexedDB too, so a refresh does not discard the chosen files.
+        draft.files = [];
+        for (const input of form.querySelectorAll('.document-input')) {
+          const file = input.files && input.files[0];
+          if (file) draft.files.push({name:input.name,fileName:file.name,type:file.type,lastModified:file.lastModified,blob:file});
+        }
+        await draftTransaction('readwrite', store => store.put(draft, DRAFT_KEY));
+        if (cacheStatus) cacheStatus.textContent = 'Avance guardado en este dispositivo · ' + new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+      } catch (error) {
+        if (cacheStatus) cacheStatus.textContent = 'No se pudo guardar automáticamente. Mantén esta pestaña abierta y vuelve a intentarlo.';
+        console.warn('No se pudo guardar el borrador local:', error);
+      }
+    }, 350);
+  }
+  async function restoreDraft() {
+    try {
+      const draft = await draftTransaction('readonly', store => store.get(DRAFT_KEY));
+      if (!draft) return;
+      Object.entries(draft.fields || {}).forEach(([name, value]) => {
+        const fields = [...form.elements].filter(field => field.name === name);
+        fields.forEach(field => {
+          if (field.type === 'checkbox' || field.type === 'radio') field.checked = Boolean(value);
+          else if (field.type !== 'file') field.value = value;
+        });
+      });
+      for (const saved of (draft.files || [])) {
+        const input = [...form.querySelectorAll('.document-input')].find(field => field.name === saved.name);
+        if (input && saved.blob) {
+          try {
+            const restoredFile = new File([saved.blob], saved.fileName, {type:saved.type,lastModified:saved.lastModified});
+            const transfer = new DataTransfer();
+            transfer.items.add(restoredFile);
+            input.files = transfer.files;
+            const small = input.closest('.upload-card').querySelector('small');
+            if (small) small.textContent = saved.fileName + ' · recuperado del borrador';
+          } catch (error) { console.warn('El navegador no permitió restaurar un archivo:', error); }
+        }
+      }
+      currentStep = Number.isInteger(draft.currentStep) ? draft.currentStep : 0;
+      loadedProgram = '';
+      updateStep();
+      updateInterviewForProgram();
+      if (cacheStatus) cacheStatus.textContent = 'Recuperamos tu avance guardado el ' + new Date(draft.savedAt).toLocaleString();
+    } catch (error) {
+      if (cacheStatus) cacheStatus.textContent = 'El guardado local no está disponible en este navegador.';
+      console.warn('No se pudo recuperar el borrador:', error);
+    }
+  }
+  async function clearDraftAfterConfirmedSave() {
+    await draftTransaction('readwrite', store => store.delete(DRAFT_KEY));
+    if (cacheStatus) cacheStatus.textContent = 'Solicitud confirmada. El borrador local se eliminó de este dispositivo.';
+  }
+  form.addEventListener('input', saveDraft);
+  form.addEventListener('change', saveDraft);
+  window.addEventListener('beforeunload', () => { if (saveDraftTimer) clearTimeout(saveDraftTimer); });
 
   const assistantPanel = document.getElementById('assistant-panel');
   document.getElementById('assistant-launcher').addEventListener('click', () => {
@@ -237,6 +360,5 @@
     document.getElementById('assistant-reply').textContent = replies[button.dataset.help];
   }));
 
-  readHash();
-  updateInterviewForProgram();
+  restoreDraft().finally(() => { readHash(); updateGuide(); updateInterviewForProgram(); });
 })();
