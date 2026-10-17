@@ -1,5 +1,81 @@
 <!doctype html>
 <html lang="es">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>ITIN CAMPUS</title></head>
-<body><h1>ITIN CAMPUS</h1><p>Portal institucional en construcción.</p></body>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#292f27">
+  <meta name="description" content="Portal del Instituto Teológico Interdenominacional de Nicaragua. Conoce nuestros programas e inicia tu solicitud de ingreso.">
+  <title>ITIN CAMPUS | Formación bíblica y teológica</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+<header class="site-header">
+  <a class="brand" href="#inicio"><span class="brand-mark">ITIN</span><span><strong>ITIN CAMPUS</strong><small>Instituto Teológico Interdenominacional</small></span></a>
+  <button class="menu-toggle" id="menu-toggle" aria-label="Abrir menú" aria-expanded="false">☰</button>
+  <nav class="main-nav" id="main-nav" aria-label="Navegación principal">
+    <a class="nav-link active" href="#inicio" data-page="inicio">Inicio</a>
+    <a class="nav-link" href="#solicitud" data-page="solicitud">Solicitud de inscripción</a>
+    <a class="nav-link" href="#acerca" data-page="acerca">Acerca de</a>
+    <a class="nav-link nav-admin" href="#admin" data-page="admin">Admin <span>↗</span></a>
+  </nav>
+</header>
+<main>
+<section class="page-section home-page is-visible" id="inicio" data-section="inicio">
+  <div class="hero">
+    <div class="hero-copy"><p class="eyebrow"><span class="eyebrow-line"></span> FORMACIÓN BÍBLICA Y TEOLÓGICA</p>
+      <h1>Una fe bien fundamentada.<br><em>Un servicio con propósito.</em></h1>
+      <p class="hero-lead">Profundiza en las Escrituras, fortalece tu formación teológica y prepárate para servir a Dios y a tu comunidad con conocimiento, convicción y responsabilidad.</p>
+      <div class="hero-actions"><a class="button button-primary" href="#solicitud">Iniciar solicitud <span>→</span></a><a class="button button-quiet" href="#programas">Conocer los programas</a></div>
+      <div class="hero-note"><span class="note-dot"></span> Formación para el crecimiento espiritual y el servicio cristiano</div>
+    </div>
+    <div class="hero-art" aria-label="Espacio reservado para la imagen institucional"><div class="art-orbit orbit-one"></div><div class="art-orbit orbit-two"></div><div class="art-placeholder"><span class="art-symbol">✦</span><span class="art-label">Imagen institucional</span><small>La incorporaremos cuando esté disponible</small></div><div class="art-stamp"><span>ESTUDIO</span><strong>FE</strong><span>SERVICIO</span></div></div>
+  </div>
+  <section class="programs-section" id="programas"><div class="section-heading"><p class="eyebrow">NUESTRA OFERTA ACADÉMICA</p><h2>Crece en el conocimiento de la Palabra</h2><p>Programas de formación teológica para avanzar en el estudio bíblico y fortalecer el compromiso con el ministerio cristiano.</p></div>
+    <div class="program-grid">
+      <article class="program-card"><span class="program-number">01</span><div class="program-icon">✧</div><h3>Bachillerato en Teología</h3><p>Construye una base sólida en el estudio de la Biblia y los fundamentos de la teología cristiana.</p><a href="#solicitud" class="text-link" data-program="Bachillerato">Iniciar solicitud <span>→</span></a></article>
+      <article class="program-card featured"><span class="program-number">02</span><div class="program-icon">⌘</div><h3>Licenciatura</h3><p>Profundiza en la reflexión teológica y amplía tus herramientas para la enseñanza y el servicio ministerial.</p><a href="#solicitud" class="text-link" data-program="Licenciatura">Iniciar solicitud <span>→</span></a></article>
+      <article class="program-card"><span class="program-number">03</span><div class="program-icon">✦</div><h3>Maestría</h3><p>Continúa tu desarrollo académico con una formación avanzada orientada al análisis, la enseñanza y el liderazgo cristiano.</p><a href="#solicitud" class="text-link" data-program="Maestría">Iniciar solicitud <span>→</span></a></article>
+    </div>
+    <div class="callout"><div><span class="callout-kicker">DA EL SIGUIENTE PASO</span><h2>Tu proceso comienza con una solicitud.</h2><p>Avanza por etapas y revisa tus respuestas antes de enviar la información.</p></div><a class="button button-light" href="#solicitud">Comenzar ahora <span>→</span></a></div>
+  </section>
+</section>
+<section class="page-section application-page" id="solicitud" data-section="solicitud" hidden>
+  <div class="page-intro"><p class="eyebrow">PROCESO DE INGRESO</p><h1>Solicitud de inscripción</h1><p>Te acompañaremos paso a paso. Completa cada sección y revisa tus datos antes de continuar.</p></div>
+  <div class="application-layout">
+    <aside class="progress-panel"><p class="progress-label">TU PROGRESO</p><div class="progress-track"><span id="progress-fill"></span></div><p class="progress-count" id="progress-count">Etapa 1 de 4</p>
+      <ol class="step-list"><li class="step-item current" data-step-item="0"><span>1</span><div><strong>Datos personales</strong><small>Información de contacto</small></div></li><li class="step-item" data-step-item="1"><span>2</span><div><strong>Información de la iglesia</strong><small>Comunidad y ministerio</small></div></li><li class="step-item" data-step-item="2"><span>3</span><div><strong>Documentos</strong><small>Documentación requerida</small></div></li><li class="step-item" data-step-item="3"><span>4</span><div><strong>Realizar entrevista</strong><small>Preguntas del programa</small></div></li></ol>
+      <div class="privacy-note"><span>⌑</span><p><strong>Tu información importa</strong><br>Los datos personales deben manejarse de forma privada.</p></div>
+    </aside>
+    <div class="form-panel"><form id="application-form" novalidate>
+      <div class="form-step is-current" data-step="0"><span class="step-kicker">ETAPA 01 · SOBRE TI</span><h2>Datos personales</h2><p class="step-description">Comencemos con la información necesaria para identificarte y comunicarnos contigo.</p><div class="field-grid">
+        <label class="field full">Nombre completo <span>*</span><input name="NombreCompleto" autocomplete="name" required placeholder="Escribe tu nombre y apellidos"></label>
+        <label class="field">Número de cédula <span>*</span><input name="Cedula" required placeholder="Número de identificación"></label><label class="field">Fecha de nacimiento <span>*</span><input name="FechaNac" type="date" required></label>
+        <label class="field">Correo electrónico <span>*</span><input name="Correo" type="email" autocomplete="email" required placeholder="nombre@correo.com"></label><label class="field">Teléfono celular <span>*</span><input name="Celular" type="tel" autocomplete="tel" required placeholder="Tu número de contacto"></label>
+        <label class="field">Departamento <span>*</span><input name="Departamento" required placeholder="Departamento de residencia"></label><label class="field">Municipio <span>*</span><input name="Municipio" required placeholder="Municipio de residencia"></label>
+        <label class="field full">Dirección de residencia <span>*</span><textarea name="Dirección" required rows="2" placeholder="Dirección actual"></textarea></label>
+        <label class="field">Estado civil<select name="EstadoCivil"><option value="">Selecciona una opción</option><option>Soltero/a</option><option>Casado/a</option><option>Viudo/a</option><option>Divorciado/a</option><option>Otro</option></select></label><label class="field">Profesión u ocupación<input name="Profesión" placeholder="Profesión u ocupación"></label>
+        <label class="field">Escolaridad <span>*</span><select name="Escolaridad" required><option value="">Selecciona tu nivel</option><option value="Primaria">Primaria</option><option value="Secundaria">Secundaria</option><option value="Bachillerato">Bachillerato</option><option value="Técnico">Técnico</option><option value="Universitario">Universitario</option><option value="Otro">Otro</option></select></label><label class="field">Último grado aprobado<input name="GradoAprobado" placeholder="Grado o título obtenido"></label>
+        <label class="field full">Programa al que deseas aplicar <span>*</span><select name="Programa" id="program-select" required><option value="">Selecciona un programa</option><option value="Bachillerato">Bachillerato en Teología</option><option value="Licenciatura">Licenciatura</option><option value="Maestría">Maestría</option></select></label>
+      </div></div>
+      <div class="form-step" data-step="1" hidden><span class="step-kicker">ETAPA 02 · TU COMUNIDAD</span><h2>Información de la iglesia</h2><p class="step-description">Conozcamos tu contexto congregacional y ministerial.</p><div class="field-grid">
+        <label class="field full">Nombre de la iglesia <span>*</span><input name="Iglesia" required placeholder="Nombre de tu congregación"></label><label class="field">Denominación o asociación<input name="Asociación" placeholder="Denominación o asociación"></label><label class="field">Nombre del pastor <span>*</span><input name="NombrePastor" required placeholder="Nombre completo del pastor"></label><label class="field">Cargo o función ministerial<input name="Cargo" placeholder="Tu función en la iglesia"></label><label class="field">Tiempo en la congregación<input name="TiempoIglesia" placeholder="Ej. 5 años"></label><label class="field full">¿Por qué deseas estudiar en ITIN? <span>*</span><textarea name="Motivacion" rows="4" required placeholder="Cuéntanos qué te motiva a iniciar estos estudios"></textarea></label>
+      </div></div>
+      <div class="form-step" data-step="2" hidden><span class="step-kicker">ETAPA 03 · DOCUMENTACIÓN</span><h2>Documentos</h2><p class="step-description">Prepara los archivos que el instituto solicite para tu programa.</p><div class="document-notice"><span>✧</span><div><strong>Sección de documentos en preparación</strong><p>Estos controles son una maqueta visual. La carga de archivos no se activará hasta configurar un almacenamiento seguro y validar los requisitos oficiales.</p></div></div>
+        <div class="upload-list"><label class="upload-card"><span class="upload-icon">↑</span><span><strong>Cédula de identidad</strong><small>Frente y reverso, según los requisitos.</small></span><span class="upload-action">Próximamente</span></label><label class="upload-card"><span class="upload-icon">↑</span><span><strong>Fotografía personal</strong><small>Una imagen reciente y clara.</small></span><span class="upload-action">Próximamente</span></label><label class="upload-card"><span class="upload-icon">↑</span><span><strong>Diploma o constancia académica</strong><small>Documento de estudios previos.</small></span><span class="upload-action">Próximamente</span></label><label class="upload-card"><span class="upload-icon">↑</span><span><strong>Carta pastoral</strong><small>Si corresponde a los requisitos del programa.</small></span><span class="upload-action">Próximamente</span></label></div>
+      </div>
+      <div class="form-step" data-step="3" hidden><span class="step-kicker">ETAPA 04 · CONVERSACIÓN</span><h2>Realizar entrevista</h2><p class="step-description">Las preguntas se mostrarán según el programa seleccionado cuando se conecte la API pública.</p><div id="interview-questions" class="interview-questions"><div class="loading-card"><span class="loading-dot"></span><p>La conexión con las preguntas de entrevista está pendiente.</p></div></div><label class="consent-check"><input type="checkbox" name="Confirmacion" required><span>Confirmo que la información proporcionada es correcta y deseo enviar mi solicitud para revisión institucional.</span></label><div class="review-note"><strong>¿Qué sucede después?</strong><p>Enviar esta solicitud no constituye una admisión ni una matrícula. La institución revisará la información y comunicará los siguientes pasos.</p></div></div>
+      <div class="form-alert" id="form-alert" role="status" aria-live="polite" hidden></div><div class="form-actions"><button class="button button-quiet" type="button" id="back-button" disabled>← Anterior</button><span class="required-note">* Campos obligatorios</span><button class="button button-primary" type="button" id="next-button">Continuar <span>→</span></button><button class="button button-primary" type="submit" id="submit-button" hidden>Enviar solicitud <span>→</span></button></div>
+    </form></div>
+  </div>
+</section>
+<section class="page-section about-page" id="acerca" data-section="acerca" hidden><div class="about-card"><span class="about-seal">ITIN</span><p class="eyebrow">NUESTRA INSTITUCIÓN</p><h1>Acerca de ITIN</h1><p>Este espacio se completará con la información oficial del instituto: historia, misión, visión, principios y datos institucionales.</p><div class="about-placeholder"><span>✦</span><p>Contenido institucional pendiente de aprobación</p></div></div></section>
+<section class="page-section admin-page" id="admin" data-section="admin" hidden><div class="admin-lock"><span class="lock-icon">⌑</span><p class="eyebrow">ÁREA INSTITUCIONAL</p><h1>Administración</h1><p>El acceso administrativo se habilitará posteriormente con autenticación y permisos específicos. Esta sección no permite acceder a expedientes privados desde el portal público.</p><a class="button button-primary" href="#inicio">Volver al inicio</a></div></section>
+</main>
+<footer class="site-footer"><a class="footer-brand" href="#inicio">ITIN CAMPUS</a><p>Formación bíblica, crecimiento espiritual y servicio cristiano.</p><span>© <span id="current-year"></span> Instituto Teológico Interdenominacional de Nicaragua</span></footer>
+<button class="assistant-launcher" id="assistant-launcher" aria-label="Abrir asistente de ayuda"><span class="assistant-avatar">✦</span><span>¿Te ayudo?</span></button>
+<aside class="assistant-panel" id="assistant-panel" aria-label="Asistente de ITIN" hidden><div class="assistant-heading"><span class="assistant-avatar">✦</span><div><strong>Asistente ITIN</strong><small>Orientación del portal</small></div><button id="assistant-close" aria-label="Cerrar asistente">×</button></div><div class="assistant-message"><p>¡Bienvenido/a! Puedo orientarte para navegar el portal y conocer las etapas de la solicitud.</p><p>¿Qué deseas hacer?</p></div><div class="assistant-options"><button data-help="programas">Conocer los programas</button><button data-help="solicitud">Cómo iniciar mi solicitud</button><button data-help="proceso">Qué sucede después</button></div><p class="assistant-reply" id="assistant-reply" aria-live="polite">Selecciona una opción para recibir orientación.</p></aside>
+</body>
 </html>
