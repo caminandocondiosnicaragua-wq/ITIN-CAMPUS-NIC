@@ -245,6 +245,61 @@
     if (guideTip) guideTip.textContent = item.tip;
   }
 
+
+  // Avatar interactivo: arrastrar para moverlo y pulsar para ampliar/reducir.
+  const assistantAvatar = document.querySelector('.guide-avatar');
+  const assistantAvatarWrap = document.querySelector('.guide-avatar-wrap');
+  if (assistantAvatar && assistantAvatarWrap) {
+    let draggingAvatar = false;
+    let avatarMoved = false;
+    let pointerStartX = 0, pointerStartY = 0, avatarX = 0, avatarY = 0;
+    assistantAvatar.style.cursor = 'grab';
+    assistantAvatar.style.touchAction = 'none';
+    assistantAvatar.setAttribute('tabindex', '0');
+    assistantAvatar.setAttribute('role', 'button');
+    assistantAvatar.setAttribute('aria-label', 'Arrastra para mover el asistente; pulsa para ampliar o reducir');
+    assistantAvatar.title = 'Arrastra para moverme; pulsa para ampliar o reducir';
+    assistantAvatar.addEventListener('pointerdown', event => {
+      draggingAvatar = true;
+      avatarMoved = false;
+      pointerStartX = event.clientX - avatarX;
+      pointerStartY = event.clientY - avatarY;
+      assistantAvatar.setPointerCapture(event.pointerId);
+      assistantAvatar.style.cursor = 'grabbing';
+      event.preventDefault();
+    });
+    assistantAvatar.addEventListener('pointermove', event => {
+      if (!draggingAvatar) return;
+      const nextX = event.clientX - pointerStartX;
+      const nextY = event.clientY - pointerStartY;
+      if (Math.abs(nextX - avatarX) + Math.abs(nextY - avatarY) > 4) avatarMoved = true;
+      avatarX = nextX;
+      avatarY = nextY;
+      applyAvatarTransform();
+    });
+    function applyAvatarTransform() {
+      assistantAvatar.style.transform = 'translate(' + avatarX + 'px, ' + avatarY + 'px) scale(' + (assistantAvatar.classList.contains('is-enlarged') ? '1.22' : '1') + ')';
+    }
+    function stopAvatarDrag() {
+      draggingAvatar = false;
+      assistantAvatar.style.cursor = 'grab';
+    }
+    assistantAvatar.addEventListener('pointerup', stopAvatarDrag);
+    assistantAvatar.addEventListener('pointercancel', stopAvatarDrag);
+    assistantAvatar.addEventListener('click', () => {
+      if (avatarMoved) { avatarMoved = false; return; }
+      assistantAvatar.classList.toggle('is-enlarged');
+      applyAvatarTransform();
+    });
+    assistantAvatar.addEventListener('keydown', event => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        assistantAvatar.classList.toggle('is-enlarged');
+        applyAvatarTransform();
+      }
+    });
+  }
+
   const DRAFT_DB = 'itin-campus-drafts-v1';
   const DRAFT_STORE = 'solicitud';
   const DRAFT_KEY = 'solicitud-actual';
