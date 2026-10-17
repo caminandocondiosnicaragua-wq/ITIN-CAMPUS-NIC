@@ -37,3 +37,17 @@
 .about-quote small{font-size:9px;letter-spacing:.15em;color:#d5cdb9}
 @media(max-width:800px){.about-hero{grid-template-columns:1fr;padding-top:52px;gap:35px}.about-emblem{max-width:390px;width:100%;margin:0 auto;min-height:240px}.about-content{grid-template-columns:1fr}.about-quote{margin-left:20px;margin-right:20px}}
 @media(max-width:560px){.about-hero{padding-left:20px;padding-right:20px}.about-content{padding-left:15px;padding-right:15px}.about-panel{padding:25px}.about-panel h2{font-size:30px}.upload-card{padding:12px}.document-input{font-size:10px!important}}
+
+/* ITIN contextual assistant placed immediately below the progress panel */
+.brand-mark{overflow:hidden;display:grid;place-items:center;background:transparent!important;border:0!important}
+.brand-mark img{display:block;width:100%;height:100%;object-fit:contain;border-radius:50%}
+.guide-card{margin-top:18px;padding:17px 15px 15px;border:1px solid var(--line);border-radius:19px;background:linear-gradient(160deg,#fffdf8 0%,#f0e8d8 100%);box-shadow:0 10px 28px #292f270c;overflow:hidden}
+.guide-title{display:flex;flex-direction:column;gap:2px}
+.guide-title strong{font-family:"Playfair Display",serif;font-size:19px;color:var(--olive)}
+.guide-title span{font-size:9px;letter-spacing:.14em;font-weight:700;color:var(--brown)}
+.guide-avatar{display:block;width:min(100%,190px);height:165px;object-fit:contain;object-position:center bottom;margin:8px auto 7px}
+.guide-card h3{font-family:"Playfair Display",serif;font-size:19px;line-height:1.3;margin:6px 0 8px;color:var(--olive)}
+.guide-card>p{font-size:12px;line-height:1.75;color:#625f53;margin:0}
+.guide-tip{margin-top:12px;padding:10px 11px;background:#e9dfcb;border-radius:11px;color:#51442f;font-size:11px;line-height:1.65}
+.cache-status{margin-top:10px!important;padding-top:9px;border-top:1px solid #ded6c5;font-size:10px!important;color:#77705f!important}
+@media(max-width:800px){.guide-card{display:grid;grid-template-columns:100px minmax(0,1fr);column-gap:13px;align-items:start}.guide-title{grid-column:1/-1}.guide-avatar{grid-column:1;grid-row:2/5;width:100px;height:130px;margin:6px auto}.guide-card h3{grid-column:2;align-self:end}.guide-card>p{grid-column:2}.guide-tip,.cache-status{grid-column:1/-1}}
