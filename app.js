@@ -76,6 +76,7 @@
     const position = active.indexOf(currentStep);
     progressFill.style.width = ((position + 1) / active.length * 100) + '%';
     progressCount.textContent = 'Etapa ' + (position + 1) + ' de ' + active.length;
+    backButton.hidden = position === 0;
     backButton.disabled = position === 0;
     nextButton.hidden = position === active.length - 1;
     submitButton.hidden = position !== active.length - 1;
@@ -224,7 +225,7 @@
     alertBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
   });
 
-  // Guía contextual fija debajo del panel de progreso.
+  // Guía contextual interactiva debajo del panel de progreso.
   const guideTitle = document.getElementById('guide-title');
   const guideHeading = document.getElementById('guide-heading');
   const guideMessage = document.getElementById('guide-message');
