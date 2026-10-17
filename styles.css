@@ -80,3 +80,21 @@
  .guide-bubble{padding:12px}
  .guide-bubble h3{font-size:17px}
 }
+
+/* Globo de orientación arriba del robot; avatar con interacción por puntero */
+.guide-card{display:flex;flex-direction:column}
+.guide-bubble{order:1;margin-bottom:9px}
+.guide-avatar-wrap{order:2;position:relative;overflow:visible;min-height:130px}
+.guide-tip{order:3}
+.cache-status{order:4}
+.guide-avatar{transition:transform .18s ease;touch-action:none;user-select:none;-webkit-user-drag:none;will-change:transform}
+.guide-avatar:focus-visible{outline:2px solid #b59a60;outline-offset:3px;border-radius:12px}
+@media(max-width:800px){
+ .guide-card{display:flex;flex-direction:column}
+ .guide-title{order:0}
+ .guide-bubble{order:1}
+ .guide-avatar-wrap{order:2;min-height:110px}
+ .guide-avatar{width:100px;height:110px}
+ .guide-tip{order:3}
+ .cache-status{order:4}
+}
