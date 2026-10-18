@@ -183,3 +183,9 @@ button, .button {
   .guide-avatar-wrap { min-height:0; }
   .guide-avatar { max-height:175px; width:auto; }
 }
+
+
+/* Respeta hidden en la tarjeta flexible del asistente y mantiene el formulario en su columna. */
+.guide-card[hidden] { display: none !important; }
+.accessibility-tools { grid-column: 1 / -1; }
+.form-panel > .accessibility-tools { grid-column: auto; }
