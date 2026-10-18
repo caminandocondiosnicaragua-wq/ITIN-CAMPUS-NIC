@@ -194,7 +194,7 @@
     }
     if (isMasters()) {
       loadedProgram = program;
-      renderQuestionMessage('La Maestría no requiere entrevista en este proceso. Al finalizar Documentos podrás confirmar tu solicitud.');
+      renderQuestionMessage('Al completar los documentos podrás confirmar tu solicitud.');
       return;
     }
     if (loadedProgram === program && questionBox.querySelector('.interview-question')) return;
@@ -230,22 +230,90 @@
     }
   });
 
+  // Adjuntos: permite reemplazar o quitar el archivo de cada campo.
+  const MAX_FILE_BYTES = 4 * 1024 * 1024;
+  const MAX_TOTAL_FILE_BYTES = 8 * 1024 * 1024;
+  const ALLOWED_FILE_TYPES = ['image/png', 'image/jpeg', 'application/pdf'];
+
+  function refreshUploadCard(input) {
+    const card = input.closest('.upload-card');
+    const small = card && card.querySelector('small');
+    const removeButton = card && card.querySelector('.remove-upload-button');
+    const file = input.files && input.files[0];
+    if (small) {
+      small.textContent = file
+        ? file.name + ' · ' + Math.max(1, Math.round(file.size / 1024)) + ' KB'
+        : (input.dataset.defaultHelp || 'Ningún archivo seleccionado.');
+    }
+    if (removeButton) {
+      removeButton.hidden = !file;
+      removeButton.disabled = !file;
+    }
+  }
+
   form.querySelectorAll('.document-input').forEach(input => {
+    const card = input.closest('.upload-card');
+    const small = card && card.querySelector('small');
+    if (small) input.dataset.defaultHelp = small.textContent.trim();
+
+    const removeButton = document.createElement('button');
+    removeButton.type = 'button';
+    removeButton.className = 'remove-upload-button';
+    removeButton.textContent = 'Quitar archivo';
+    removeButton.setAttribute('aria-label', 'Quitar archivo de ' + input.name);
+    removeButton.hidden = true;
+    removeButton.disabled = true;
+    removeButton.addEventListener('click', () => {
+      input.value = '';
+      input.setCustomValidity('');
+      refreshUploadCard(input);
+      saveDraft();
+    });
+    if (card) card.append(removeButton);
+
     input.addEventListener('change', () => {
       const file = input.files && input.files[0];
-      if (!file) return;
-      const allowed = ['image/png', 'image/jpeg'];
-      if (!allowed.includes(file.type)) {
-        input.setCustomValidity('Selecciona una imagen PNG, JPG o JPEG.');
-        input.reportValidity();
-        input.value = '';
+      input.setCustomValidity('');
+      if (!file) {
+        refreshUploadCard(input);
+        saveDraft();
         return;
       }
-      input.setCustomValidity('');
-      const small = input.closest('.upload-card').querySelector('small');
-      small.textContent = file.name + ' · ' + Math.max(1, Math.round(file.size / 1024)) + ' KB';
+      if (!ALLOWED_FILE_TYPES.includes(file.type)) {
+        input.setCustomValidity('Selecciona una imagen PNG, JPG o JPEG, o un documento PDF.');
+        input.reportValidity();
+        input.value = '';
+        refreshUploadCard(input);
+        return;
+      }
+      if (file.size > MAX_FILE_BYTES) {
+        input.setCustomValidity('Cada archivo debe pesar como máximo 4 MB.');
+        input.reportValidity();
+        input.value = '';
+        refreshUploadCard(input);
+        return;
+      }
+      refreshUploadCard(input);
+      saveDraft();
     });
   });
+
+  function fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const dataUrl = String(reader.result || '');
+        const comma = dataUrl.indexOf(',');
+        if (comma < 0) {
+          reject(new Error('No se pudo preparar el archivo ' + file.name + '.'));
+          return;
+        }
+        resolve(dataUrl.slice(comma + 1));
+      };
+      reader.onerror = () => reject(new Error('No se pudo leer el archivo ' + file.name + '.'));
+      reader.readAsDataURL(file);
+    });
+  }
 
   form.addEventListener('submit', async event => {
     event.preventDefault();
@@ -255,9 +323,16 @@
       confirmation.reportValidity();
       return;
     }
-    const selectedFiles = [...form.querySelectorAll('.document-input')].filter(input => input.files && input.files.length);
-    if (selectedFiles.length) {
-      alertBox.textContent = 'La recepción de imágenes todavía no está conectada. Para esta prueba de texto, retira los archivos seleccionados. Tu avance permanece guardado.';
+    const selectedFiles = [...form.querySelectorAll('.document-input')]
+      .filter(input => input.files && input.files.length);
+    const totalFileBytes = selectedFiles.reduce((sum, input) => sum + input.files[0].size, 0);
+    if (selectedFiles.some(input => input.files[0].size > MAX_FILE_BYTES)) {
+      alertBox.textContent = 'Cada archivo debe pesar como máximo 4 MB. Quita o reemplaza el archivo que supera el límite.';
+      alertBox.hidden = false;
+      return;
+    }
+    if (totalFileBytes > MAX_TOTAL_FILE_BYTES) {
+      alertBox.textContent = 'El total de los archivos no puede superar 8 MB por solicitud. Quita o reemplaza algún archivo.';
       alertBox.hidden = false;
       return;
     }
@@ -275,10 +350,27 @@
         preguntaId: field.dataset.questionId,
         respuesta: field.value.trim()
       }));
+      // Convertir los adjuntos a Base64 para que Apps Script los reciba en solicitud.archivos.
+      const archivos = {};
+      for (const input of selectedFiles) {
+        const file = input.files[0];
+        archivos[input.name] = {
+          nombre: file.name,
+          tipo: file.type,
+          base64: await fileToBase64(file)
+        };
+      }
       const response = await fetch(API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ accion: 'solicitud', programa: programSelect.value, estudiante, documentos: {}, respuestas }),
+        body: JSON.stringify({
+          accion: 'solicitud',
+          programa: programSelect.value,
+          estudiante,
+          documentos: {},
+          archivos,
+          respuestas
+        }),
         redirect: 'follow'
       });
       const textResponse = await response.text();
@@ -287,6 +379,7 @@
       if (!response.ok || !result.ok || result.estado === 'INCOMPLETA') throw new Error(result.error || result.mensaje || 'El servidor no confirmó el guardado completo.');
       await clearDraftAfterConfirmedSave();
       form.reset();
+      form.querySelectorAll('.document-input').forEach(refreshUploadCard);
       currentStep = 0;
       loadedProgram = '';
       updateStep();
@@ -311,8 +404,8 @@
   const guideContent = [
     {title:'Datos personales',heading:'Empecemos por ti',message:'Escribe tus datos tal como aparecen en tus documentos y utiliza un correo y teléfono donde podamos contactarte.',tip:'Consejo: revisa la fecha de nacimiento, el número de cédula y el programa antes de continuar.'},
     {title:'Información de la iglesia',heading:'Cuéntanos de tu comunidad',message:'Indica la iglesia donde congregas y los datos ministeriales solicitados. Si algún campo no corresponde a tu situación, no inventes información.',tip:'Consejo: verifica la escritura del nombre de la iglesia y del pastor.'},
-    {title:'Documentos',heading:'Prepara imágenes claras',message:'Puedes seleccionar una imagen o usar la cámara del teléfono. Comprueba que el texto se vea completo, con buena luz y sin reflejos.',tip:'Formatos admitidos: PNG, JPG y JPEG. El envío seguro de archivos se habilitará al terminar la integración del servidor.'},
-    {title:'Realizar entrevista',heading:'Responde con tus palabras',message:'Lee cada pregunta y responde con sinceridad y claridad. Las preguntas corresponden al programa seleccionado; Maestría no incluye entrevista.',tip:'Consejo: puedes regresar a las etapas anteriores; tu avance se conserva en este dispositivo.'}
+    {title:'Documentos',heading:'Prepara imágenes claras',message:'Puedes seleccionar una imagen o un PDF. Comprueba que el texto se vea completo, con buena luz y sin reflejos. Si eliges el archivo equivocado, puedes quitarlo o reemplazarlo.',tip:'Formatos admitidos: PNG, JPG, JPEG y PDF. Cada archivo admite hasta 4 MB y el total hasta 8 MB. Puedes quitar o reemplazar archivos antes de enviar.'},
+    {title:'Realizar entrevista',heading:'Responde con tus palabras',message:'Lee cada pregunta y responde con sinceridad y claridad. Las preguntas corresponden al programa seleccionado.',tip:'Consejo: puedes regresar a las etapas anteriores; tu avance se conserva en este dispositivo.'}
   ];
   function updateGuide() {
     const item = guideContent[currentStep] || guideContent[0];
@@ -486,7 +579,7 @@
   });
   const replies = {
     programas: 'ITIN ofrece tres opciones de formación. El Bachillerato en Teología permite construir una base sólida en el estudio bíblico y los fundamentos de la teología cristiana. La Licenciatura profundiza en la reflexión teológica y fortalece las herramientas para la enseñanza y el servicio ministerial. La Maestría ofrece formación avanzada orientada al análisis, la enseñanza y el liderazgo cristiano. Para conocer los requisitos específicos y la documentación requerida, consulta directamente con el instituto.',
-    solicitud: 'La solicitud se completa por etapas. Primero se registran los datos personales y de contacto; después, la información de la iglesia y del ministerio; luego, los documentos solicitados; y, para Bachillerato y Licenciatura, las preguntas de entrevista que corresponden al programa. En Maestría no se presenta esta etapa de entrevista. Puedes volver a las etapas anteriores antes de confirmar la solicitud. Revisa cuidadosamente tus respuestas antes de continuar.',
+    solicitud: 'La solicitud se completa por etapas: datos personales, información de la iglesia, documentos y preguntas de entrevista cuando correspondan al programa. Puedes volver a las etapas anteriores antes de confirmar la solicitud. Revisa cuidadosamente tus respuestas y los archivos adjuntos; puedes quitar o reemplazar un archivo antes de enviar.',
     proceso: 'Enviar una solicitud no significa que la persona ya haya sido admitida ni matriculada. La información será revisada por el instituto y, después de esa revisión, la institución comunicará los siguientes pasos. La matrícula y los procesos académicos o financieros son etapas posteriores y no forman parte de esta solicitud pública.'
   };
   document.querySelectorAll('[data-help]').forEach(button => button.addEventListener('click', () => {
