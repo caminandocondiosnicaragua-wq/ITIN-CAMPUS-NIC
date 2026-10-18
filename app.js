@@ -22,6 +22,29 @@
 
   document.getElementById('current-year').textContent = new Date().getFullYear();
 
+  // Controles accesibles para ajustar el tamaño de letra en toda la página.
+  const fontDecrease = document.getElementById('font-decrease');
+  const fontReset = document.getElementById('font-reset');
+  const fontIncrease = document.getElementById('font-increase');
+  let fontScale = 1.12;
+  function applyFontScale() {
+    document.documentElement.style.setProperty('--font-scale', String(fontScale));
+    try { localStorage.setItem('itin-font-scale', String(fontScale)); } catch (_) {}
+    if (fontDecrease) fontDecrease.setAttribute('aria-pressed', String(fontScale <= 0.9));
+    if (fontReset) fontReset.setAttribute('aria-pressed', String(Math.abs(fontScale - 1.12) < 0.01));
+    if (fontIncrease) fontIncrease.setAttribute('aria-pressed', String(fontScale >= 1.5));
+  }
+  try {
+    const savedFontScale = Number(localStorage.getItem('itin-font-scale'));
+    if (savedFontScale >= 0.9 && savedFontScale <= 1.5) fontScale = savedFontScale;
+  } catch (_) {}
+  if (fontDecrease) fontDecrease.addEventListener('click', () => { fontScale = Math.max(0.9, Math.round((fontScale - 0.1) * 100) / 100); applyFontScale(); });
+  if (fontReset) fontReset.addEventListener('click', () => { fontScale = 1.12; applyFontScale(); });
+  if (fontIncrease) fontIncrease.addEventListener('click', () => { fontScale = Math.min(1.5, Math.round((fontScale + 0.1) * 100) / 100); applyFontScale(); });
+  applyFontScale();
+
+
+
   function showPage(page) {
     const validPage = sections.some(section => section.dataset.section === page) ? page : 'inicio';
     sections.forEach(section => {
