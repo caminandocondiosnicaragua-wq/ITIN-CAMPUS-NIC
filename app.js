@@ -205,7 +205,7 @@
       const response = await fetch(API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ accion: 'preguntas', solicitud: { programa: program } }),
+        body: JSON.stringify({ accion: 'preguntas', programa: program }),
         redirect: 'follow'
       });
       if (!response.ok) throw new Error('HTTP ' + response.status);
