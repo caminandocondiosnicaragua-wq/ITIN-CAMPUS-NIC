@@ -196,3 +196,26 @@ button, .button {
 /* Respuestas de entrevista compactas: dos líneas visibles, ampliables si hace falta. */
 .interview-question { gap: 8px; padding: 14px; }
 .interview-question textarea { min-height: 58px; height: 58px; resize: vertical; line-height: 1.45; }
+
+
+/* Acciones de adjuntos: coherentes con la paleta crema y caqui existente. */
+.remove-upload-button {
+  align-self: flex-start;
+  margin: 4px 0 0 50px;
+  border: 1px solid #d8c9a8;
+  border-radius: 999px;
+  padding: 7px 11px;
+  min-height: 34px;
+  background: #fff8ed;
+  color: #87472f;
+  font: inherit;
+  font-size: .85rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.remove-upload-button:hover { background: #f3e4d4; }
+.remove-upload-button:focus-visible { outline: 2px solid #a58f60; outline-offset: 2px; }
+.remove-upload-button[hidden] { display: none !important; }
+@media (max-width: 560px) {
+  .remove-upload-button { margin-left: 0; }
+}
