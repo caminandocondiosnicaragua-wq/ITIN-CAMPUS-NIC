@@ -189,3 +189,10 @@ button, .button {
 .guide-card[hidden] { display: none !important; }
 .accessibility-tools { grid-column: 1 / -1; }
 .form-panel > .accessibility-tools { grid-column: auto; }
+
+
+/* El atributo hidden debe prevalecer sobre estilos de botones y tarjetas. */
+[hidden] { display: none !important; }
+/* Respuestas de entrevista compactas: dos líneas visibles, ampliables si hace falta. */
+.interview-question { gap: 8px; padding: 14px; }
+.interview-question textarea { min-height: 58px; height: 58px; resize: vertical; line-height: 1.45; }
