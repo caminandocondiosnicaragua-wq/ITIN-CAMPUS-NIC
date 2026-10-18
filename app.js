@@ -348,6 +348,7 @@
     submitButton.disabled = true;
     submitButton.textContent = 'Enviando…';
     alertBox.hidden = true;
+    alertBox.classList.remove('form-alert-success');
     try {
       const estudiante = {};
       [...form.elements].forEach(field => {
@@ -392,10 +393,12 @@
       currentStep = 0;
       loadedProgram = '';
       updateStep();
-      alertBox.textContent = 'Solicitud recibida y confirmada por la API. Revisa Notion para verificar los registros. Esto no constituye admisión ni matrícula.';
+      alertBox.textContent = 'Tu solicitud ha sido enviada. Esto no confirma admisión ni matrícula. Nos comunicaremos contigo por el correo electrónico o WhatsApp que proporcionaste para informarte sobre los siguientes pasos.';
+      alertBox.classList.add('form-alert-success');
       alertBox.hidden = false;
     } catch (error) {
-      alertBox.textContent = 'No se pudo confirmar el guardado: ' + (error.message || 'error de conexión') + '. Tu avance sigue guardado en este dispositivo.';
+      alertBox.classList.remove('form-alert-success');
+      alertBox.textContent = 'No se pudo completar el envío. ' + (error.message || 'Error de conexión') + '. Tu avance permanece guardado en este dispositivo.';
       alertBox.hidden = false;
       console.error('Error enviando solicitud ITIN:', error);
     } finally {
