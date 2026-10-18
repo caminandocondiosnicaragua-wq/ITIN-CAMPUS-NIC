@@ -98,3 +98,60 @@
  .guide-tip{order:3}
  .cache-status{order:4}
 }
+
+/* Accesibilidad: tipografía más grande y controles para ampliarla */
+:root {
+  --font-scale: 1.12;
+}
+body {
+  font-size: calc(16px * var(--font-scale));
+}
+body, p, li, label, input, select, textarea, button, small {
+  font-size: max(1em, calc(1em * var(--font-scale)));
+}
+.step-description, .hero-copy, .form-alert, .document-notice p,
+.guide-bubble p, .guide-tip, .cache-status, .step-item small,
+.required-note, .field-help {
+  font-size: max(1rem, calc(1rem * var(--font-scale)));
+  line-height: 1.65;
+}
+.field label, .field > label, .interview-question label {
+  font-size: max(1rem, calc(1rem * var(--font-scale)));
+}
+input, select, textarea {
+  min-height: 48px;
+  padding: 12px 14px;
+}
+button, .button {
+  min-height: 44px;
+  padding: 11px 17px;
+}
+.accessibility-tools {
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  flex-wrap:wrap;
+  gap:8px;
+  margin:0 0 14px;
+}
+.accessibility-tools span {
+  color:var(--muted,#756b5a);
+  font-size:.95rem;
+}
+.accessibility-tools button {
+  min-width:44px;
+  border:1px solid var(--line,#dfd2b9);
+  border-radius:999px;
+  background:var(--surface,#fffdf8);
+  color:var(--ink,#292f27);
+  font-weight:700;
+  cursor:pointer;
+}
+.accessibility-tools button:focus-visible {
+  outline:3px solid #b59a60;
+  outline-offset:2px;
+}
+@media(max-width:600px) {
+  body { font-size:calc(16px * var(--font-scale)); }
+  .accessibility-tools { justify-content:flex-start; }
+}
