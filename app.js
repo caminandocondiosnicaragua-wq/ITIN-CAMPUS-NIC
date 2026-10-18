@@ -19,6 +19,7 @@
   let currentStep = 0;
   let loadedProgram = '';
   let questionLoadToken = 0;
+  let pendingDraftFields = {};
 
   document.getElementById('current-year').textContent = new Date().getFullYear();
 
@@ -181,6 +182,12 @@
       answer.placeholder = 'Escribe tu respuesta con tus propias palabras…';
       wrapper.append(label, answer);
       questionBox.append(wrapper);
+      const savedAnswer = pendingDraftFields[answer.name];
+      if (typeof savedAnswer === 'string') answer.value = savedAnswer;
+    });
+    questionBox.querySelectorAll('textarea[data-question-id]').forEach(field => {
+      field.addEventListener('input', saveDraft);
+      field.addEventListener('change', saveDraft);
     });
   }
 
@@ -269,7 +276,8 @@
       refreshUploadCard(input);
       saveDraft();
     });
-    if (card) card.append(removeButton);
+    const content = card && card.querySelector('span:nth-child(2)');
+    if (content) content.append(removeButton);
 
     input.addEventListener('change', () => {
       const file = input.files && input.files[0];
@@ -379,6 +387,7 @@
       if (!response.ok || !result.ok || result.estado === 'INCOMPLETA') throw new Error(result.error || result.mensaje || 'El servidor no confirmó el guardado completo.');
       await clearDraftAfterConfirmedSave();
       form.reset();
+      pendingDraftFields = {};
       form.querySelectorAll('.document-input').forEach(refreshUploadCard);
       currentStep = 0;
       loadedProgram = '';
@@ -505,6 +514,10 @@
         fields[field.name] = field.checked;
       } else fields[field.name] = field.value;
     });
+    // Guardar también las respuestas que se generan dinámicamente desde la API.
+    questionBox.querySelectorAll('textarea[data-question-id]').forEach(field => {
+      if (field.name) fields[field.name] = field.value;
+    });
     return {fields, currentStep, savedAt: new Date().toISOString()};
   }
   let saveDraftTimer;
@@ -532,6 +545,7 @@
     try {
       const draft = await draftTransaction('readonly', store => store.get(DRAFT_KEY));
       if (!draft) return;
+      pendingDraftFields = draft.fields || {};
       Object.entries(draft.fields || {}).forEach(([name, value]) => {
         const fields = [...form.elements].filter(field => field.name === name);
         fields.forEach(field => {
@@ -549,6 +563,7 @@
             input.files = transfer.files;
             const small = input.closest('.upload-card').querySelector('small');
             if (small) small.textContent = saved.fileName + ' · recuperado del borrador';
+            refreshUploadCard(input);
           } catch (error) { console.warn('El navegador no permitió restaurar un archivo:', error); }
         }
       }
@@ -568,6 +583,8 @@
   }
   form.addEventListener('input', saveDraft);
   form.addEventListener('change', saveDraft);
+  questionBox.addEventListener('input', saveDraft);
+  questionBox.addEventListener('change', saveDraft);
   window.addEventListener('beforeunload', () => { if (saveDraftTimer) clearTimeout(saveDraftTimer); });
 
   const assistantPanel = document.getElementById('assistant-panel');
