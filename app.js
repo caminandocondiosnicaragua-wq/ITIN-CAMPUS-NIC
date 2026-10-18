@@ -177,7 +177,7 @@
       answer.name = 'Respuesta_' + question.id;
       answer.dataset.questionId = question.id;
       answer.required = true;
-      answer.rows = 4;
+      answer.rows = 2;
       answer.placeholder = 'Escribe tu respuesta con tus propias palabras…';
       wrapper.append(label, answer);
       questionBox.append(wrapper);
