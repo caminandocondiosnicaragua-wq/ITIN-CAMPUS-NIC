@@ -155,3 +155,31 @@ button, .button {
   body { font-size:calc(16px * var(--font-scale)); }
   .accessibility-tools { justify-content:flex-start; }
 }
+
+/* Ajustes de distribución para que el formulario y el asistente no se recorten */
+.application-layout { grid-template-columns: minmax(245px, 285px) minmax(0, 1fr); }
+.application-layout > * { min-width: 0; }
+.progress-panel { overflow: visible; }
+.guide-card { overflow: visible; }
+.guide-bubble { overflow-wrap: anywhere; }
+.guide-avatar-wrap { overflow: visible; }
+.guide-avatar { display:block; object-fit:contain; max-width:100%; height:auto; }
+.field-help { display:block; margin: -2px 0 0; color: #716b5d; font-size: .9rem; font-weight:400; line-height:1.5; }
+.field input[aria-describedby="cedula-help"] { letter-spacing:.02em; }
+.form-actions { flex-wrap:wrap; }
+.form-actions .required-note { min-width:150px; }
+@media (max-width: 920px) {
+  .application-layout { grid-template-columns:minmax(0,1fr); }
+  .progress-panel { position:relative; top:auto; }
+  .guide-card { max-width:100%; }
+}
+@media (max-width:560px) {
+  .application-layout { padding:0 12px; gap:16px; }
+  .form-panel { min-width:0; width:100%; }
+  .form-actions { gap:8px; }
+  .form-actions .button { min-width:0; white-space:normal; }
+  .guide-card { overflow:visible; }
+  .guide-bubble { max-width:100%; }
+  .guide-avatar-wrap { min-height:0; }
+  .guide-avatar { max-height:175px; width:auto; }
+}
