@@ -153,7 +153,20 @@
       renderQuestionMessage('No se encontraron preguntas publicadas para ' + program + '. El instituto debe revisar el banco de preguntas.');
       return;
     }
-    questions.forEach((question, index) => {
+    // El banco de Notion puede devolver las preguntas en otro orden.
+    // Ordenamos por el número que ya forma parte del enunciado (1., 2., 3.),
+    // sin agregar una segunda numeración visual.
+    const orderedQuestions = [...questions].sort((a, b) => {
+      const textA = String(a.pregunta || a.titulo || '');
+      const textB = String(b.pregunta || b.titulo || '');
+      const numberA = textA.match(/^\s*(\d+)\s*[.)-]/);
+      const numberB = textB.match(/^\s*(\d+)\s*[.)-]/);
+      if (numberA && numberB) return Number(numberA[1]) - Number(numberB[1]);
+      if (numberA) return -1;
+      if (numberB) return 1;
+      return 0;
+    });
+    orderedQuestions.forEach((question, index) => {
       const wrapper = document.createElement('div');
       wrapper.className = 'interview-question';
       const label = document.createElement('label');
