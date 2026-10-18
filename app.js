@@ -255,10 +255,51 @@
       confirmation.reportValidity();
       return;
     }
-    // Do not clear the local draft until the server confirms a complete save.
-    alertBox.textContent = 'El envío aún requiere confirmar el contrato de datos del receptor de Apps Script. Tu avance permanece guardado en este dispositivo; no se borrará por un intento fallido.';
-    alertBox.hidden = false;
-    alertBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    const selectedFiles = [...form.querySelectorAll('.document-input')].filter(input => input.files && input.files.length);
+    if (selectedFiles.length) {
+      alertBox.textContent = 'La recepción de imágenes todavía no está conectada. Para esta prueba de texto, retira los archivos seleccionados. Tu avance permanece guardado.';
+      alertBox.hidden = false;
+      return;
+    }
+    const originalLabel = submitButton.innerHTML;
+    submitButton.disabled = true;
+    submitButton.textContent = 'Enviando…';
+    alertBox.hidden = true;
+    try {
+      const estudiante = {};
+      [...form.elements].forEach(field => {
+        if (!field.name || ['file','submit','button'].includes(field.type) || field.name === 'Confirmacion' || field.name.startsWith('Respuesta_')) return;
+        estudiante[field.name] = field.value.trim();
+      });
+      const respuestas = [...questionBox.querySelectorAll('textarea[data-question-id]')].map(field => ({
+        preguntaId: field.dataset.questionId,
+        respuesta: field.value.trim()
+      }));
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ accion: 'solicitud', programa: programSelect.value, estudiante, documentos: {}, respuestas }),
+        redirect: 'follow'
+      });
+      const textResponse = await response.text();
+      let result;
+      try { result = JSON.parse(textResponse); } catch (_) { throw new Error('La API no devolvió JSON. Comprueba la implementación de Apps Script.'); }
+      if (!response.ok || !result.ok || result.estado === 'INCOMPLETA') throw new Error(result.error || result.mensaje || 'El servidor no confirmó el guardado completo.');
+      await clearDraftAfterConfirmedSave();
+      form.reset();
+      currentStep = 0;
+      loadedProgram = '';
+      updateStep();
+      alertBox.textContent = 'Solicitud recibida y confirmada por la API. Revisa Notion para verificar los registros. Esto no constituye admisión ni matrícula.';
+      alertBox.hidden = false;
+    } catch (error) {
+      alertBox.textContent = 'No se pudo confirmar el guardado: ' + (error.message || 'error de conexión') + '. Tu avance sigue guardado en este dispositivo.';
+      alertBox.hidden = false;
+      console.error('Error enviando solicitud ITIN:', error);
+    } finally {
+      submitButton.disabled = false;
+      submitButton.innerHTML = originalLabel;
+    }
   });
 
   // Guía contextual interactiva debajo del panel de progreso.
