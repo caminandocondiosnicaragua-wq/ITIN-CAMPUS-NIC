@@ -242,3 +242,11 @@ button, .button {
 .upload-card .remove-upload-button:hover { background: #f3e4d4; }
 .upload-card .remove-upload-button:focus-visible { outline: 2px solid #a58f60; outline-offset: 2px; }
 .upload-card .remove-upload-button[hidden] { display: none !important; }
+
+
+/* Confirmación neutral/positiva para el solicitante; los errores conservan el estilo actual. */
+.form-alert.form-alert-success {
+  background: #e9f2e8;
+  color: #31583a;
+  border: 1px solid #c8ddc5;
+}
