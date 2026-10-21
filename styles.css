@@ -250,3 +250,27 @@ button, .button {
   color: #31583a;
   border: 1px solid #c8ddc5;
 }
+
+
+/* Emblema institucional interactivo: Piedad, Estudio y Servicio */
+.itin-emblem-stage{position:relative;isolation:isolate;perspective:900px}
+.itin-logo-halo{position:absolute;z-index:3;left:50%;top:50%;width:clamp(150px,22vw,245px);aspect-ratio:1;transform:translate(-50%,-50%);display:grid;place-items:center;border-radius:50%;background:radial-gradient(circle,#fff9e7 0%,#e5d3a5 65%,#b59a60 100%);border:2px solid #b79a58;box-shadow:0 0 0 8px #e2d4b555,0 18px 48px #292f2725;animation:itin-logo-float 5s ease-in-out infinite;transition:box-shadow .3s ease}
+.itin-hero-logo{display:block;width:86%;height:86%;object-fit:contain;border-radius:50%;filter:drop-shadow(0 5px 7px #292f2730);transition:transform .25s ease}
+.itin-emblem-stage:hover .itin-logo-halo{box-shadow:0 0 0 10px #e2d4b577,0 20px 55px #292f2740}
+.art-orbit.orbit-three{position:absolute;inset:7%;border:1px dashed #a78c52;border-radius:50%;animation:itin-orbit-spin 36s linear infinite}
+.itin-value{position:absolute;z-index:4;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;width:clamp(94px,12vw,132px);aspect-ratio:1;border:1px solid #d5c18d;border-radius:50%;background:radial-gradient(circle at 35% 25%,#3b4938,#20291f 75%);color:#f5e9c9;font-family:"Playfair Display",serif;font-size:clamp(14px,1.5vw,19px);font-weight:600;box-shadow:0 8px 24px #292f2730,inset 0 0 0 4px #ffffff08;cursor:pointer;transition:transform .25s ease,box-shadow .25s ease,border-color .25s ease,background .25s ease}
+.itin-value .value-symbol{font-family:serif;font-size:clamp(24px,3vw,34px);line-height:1}
+.itin-value-piedad{left:12%;bottom:16%}
+.itin-value-estudio{top:4%;left:calc(50% - clamp(47px,6vw,66px))}
+.itin-value-servicio{right:10%;bottom:16%}
+.itin-value:hover,.itin-value:focus-visible,.itin-value.is-active{transform:translateY(-7px) scale(1.055);border-color:#f1d98d;box-shadow:0 0 0 5px #c5a65a35,0 14px 32px #292f2745,inset 0 0 0 4px #ffffff10;outline:none}
+.itin-value.is-active{background:radial-gradient(circle at 35% 25%,#526447,#20291f 78%)}
+.itin-value:focus-visible{outline:2px solid #9c7b35;outline-offset:5px}
+.about-logo-emblem{gap:12px;transition:transform .3s ease,box-shadow .3s ease}
+.about-logo-emblem:hover{transform:translateY(-4px);box-shadow:0 15px 35px #292f2720}
+.about-logo-emblem .about-institute-logo{display:block;width:min(64%,210px);max-height:190px;object-fit:contain;border-radius:50%;filter:drop-shadow(0 7px 9px #292f2720);animation:itin-logo-float 5s ease-in-out infinite}
+.about-logo-emblem span{display:none}
+@keyframes itin-logo-float{0%,100%{translate:0 0}50%{translate:0 -6px}}
+@keyframes itin-orbit-spin{to{transform:rotate(360deg)}}
+@media(max-width:560px){.itin-logo-halo{width:145px}.itin-value{width:88px;font-size:13px;gap:4px}.itin-value .value-symbol{font-size:23px}.itin-value-piedad{left:2%;bottom:12%}.itin-value-estudio{top:2%;left:calc(50% - 44px)}.itin-value-servicio{right:2%;bottom:12%}.about-logo-emblem .about-institute-logo{width:170px}}
+@media(prefers-reduced-motion:reduce){.itin-logo-halo,.itin-hero-logo,.art-orbit.orbit-three,.about-logo-emblem .about-institute-logo{animation:none!important;transition:none!important}}
