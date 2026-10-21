@@ -321,3 +321,8 @@ button, .button {
 /* Corrección de legibilidad del lema del sello verde: tres renglones visibles. */
 .itin-value-seal{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:12px}
 .itin-value-seal span{display:block;width:100%;white-space:normal;text-align:center;font-size:clamp(15px,1.35vw,18px);line-height:1.5}
+
+/* Ajuste final: sello verde más pequeño, conservando el tamaño de las palabras. */
+.itin-value-seal{width:clamp(118px,12vw,145px);padding:9px}
+.itin-value-seal span{font-size:clamp(15px,1.35vw,18px);line-height:1.5}
+@media(max-width:560px){.itin-value-seal{width:116px;padding:8px}.itin-value-seal span{font-size:15px}}
