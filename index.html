@@ -9,6 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
+  <script src="https://accounts.google.com/gsi/client" defer></script>
   <script src="app.js" defer></script>
 </head>
 <body>
@@ -92,7 +93,22 @@
   </div>
   <div class="about-quote"><span>“</span><p>Formación bíblica, crecimiento espiritual y servicio cristiano.</p><small>INSTITUTO TEOLÓGICO INTERDENOMINACIONAL DE NICARAGUA</small></div>
 </section>
-<section class="page-section admin-page" id="admin" data-section="admin" hidden><div class="admin-lock"><span class="lock-icon">⌑</span><p class="eyebrow">ÁREA INSTITUCIONAL</p><h1>Administración</h1><p>El acceso administrativo se habilitará posteriormente con autenticación y permisos específicos. Esta sección no permite acceder a expedientes privados desde el portal público.</p><a class="button button-primary" href="#inicio">Volver al inicio</a></div></section>
+<section class="page-section admin-page" id="admin" data-section="admin" hidden>
+  <div class="admin-auth-card">
+    <span class="lock-icon" aria-hidden="true">⌑</span>
+    <p class="eyebrow">ÁREA INSTITUCIONAL</p>
+    <h1>Administración</h1>
+    <p class="admin-intro">Inicia sesión con una cuenta autorizada del Instituto. La identidad se verificará en el servidor antes de habilitar cualquier consulta privada.</p>
+    <div id="google-signin-button" class="google-signin-button"></div>
+    <p id="admin-auth-status" class="admin-auth-status" role="status" aria-live="polite">Acceso restringido a cuentas institucionales autorizadas.</p>
+    <div id="admin-session-panel" class="admin-session-panel" hidden>
+      <p id="admin-session-email" class="admin-session-email"></p>
+      <p>La identidad se ha verificado. El panel de expedientes permanecerá bloqueado hasta que se habiliten y prueben los endpoints administrativos protegidos del servidor.</p>
+      <button id="admin-signout" class="button button-quiet" type="button">Cerrar sesión</button>
+    </div>
+    <a class="button button-primary" href="#inicio">Volver al inicio</a>
+  </div>
+</section>
 </main>
 <footer class="site-footer"><a class="footer-brand" href="#inicio">ITIN CAMPUS</a><p>Formación bíblica, crecimiento espiritual y servicio cristiano.</p><span>© <span id="current-year"></span> Instituto Teológico Interdenominacional de Nicaragua</span></footer>
 <button class="assistant-launcher" id="assistant-launcher" aria-label="Abrir asistente de ayuda"><span class="assistant-avatar">✦</span><span>¿Te ayudo?</span></button>
