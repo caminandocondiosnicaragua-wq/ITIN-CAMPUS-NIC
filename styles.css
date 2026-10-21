@@ -313,3 +313,7 @@ button, .button {
 .itin-logo-display .itin-hero-logo{cursor:pointer}
 .itin-logo-display .itin-hero-logo.itin-logo-pop{animation:itin-logo-pop .55s ease-out}
 @keyframes itin-logo-pop{0%{scale:1}45%{scale:1.13}100%{scale:1}}
+
+/* Los tres valores se leen verticalmente dentro del sello verde. */
+.itin-value-seal{gap:2px;padding:14px}
+.itin-value-seal span{display:block;width:100%;text-align:center;white-space:normal;font-size:clamp(14px,1.2vw,17px);line-height:1.55}
