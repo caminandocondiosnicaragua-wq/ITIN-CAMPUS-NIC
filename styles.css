@@ -274,3 +274,22 @@ button, .button {
 @keyframes itin-orbit-spin{to{transform:rotate(360deg)}}
 @media(max-width:560px){.itin-logo-halo{width:145px}.itin-value{width:88px;font-size:13px;gap:4px}.itin-value .value-symbol{font-size:23px}.itin-value-piedad{left:2%;bottom:12%}.itin-value-estudio{top:2%;left:calc(50% - 44px)}.itin-value-servicio{right:2%;bottom:12%}.about-logo-emblem .about-institute-logo{width:170px}}
 @media(prefers-reduced-motion:reduce){.itin-logo-halo,.itin-hero-logo,.art-orbit.orbit-three,.about-logo-emblem .about-institute-logo{animation:none!important;transition:none!important}}
+
+
+/* Ajuste solicitado: un solo círculo verde, logo protagonista y tres valores dentro. */
+.itin-emblem-stage{display:flex;align-items:center;justify-content:center;min-height:420px;overflow:visible;perspective:none}
+.itin-emblem-stage .art-orbit{pointer-events:none}
+.itin-emblem-stage .art-orbit.orbit-one{inset:4% 7%;animation:itin-orbit-spin 42s linear infinite}
+.itin-emblem-stage .art-orbit.orbit-two{inset:9% 2%;animation:itin-orbit-spin 55s linear infinite reverse}
+.itin-emblem-stage .art-orbit.orbit-three{inset:1% 10%;animation:itin-orbit-spin 65s linear infinite}
+.itin-single-seal{position:relative;z-index:2;width:clamp(310px,32vw,390px);aspect-ratio:1;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:28px 25px 25px;background:radial-gradient(circle at 36% 25%,#3e4b39 0%,#293328 57%,#182119 100%);border:2px solid #c9b16f;box-shadow:0 0 0 7px #d9c79755,0 0 28px 9px #c6aa5c70,0 18px 45px #292f2735,inset 0 0 0 5px #ffffff0b;transition:box-shadow .35s ease,transform .35s ease;animation:itin-seal-float 5s ease-in-out infinite}
+.itin-single-seal:hover{box-shadow:0 0 0 9px #d9c79777,0 0 45px 17px #c6aa5caa,0 22px 55px #292f2745,inset 0 0 0 5px #ffffff10;transform:translateY(-3px)}
+.itin-single-seal .itin-hero-logo{position:relative;z-index:2;display:block;width:clamp(145px,17vw,205px);height:clamp(145px,17vw,205px);object-fit:contain;border-radius:50%;filter:drop-shadow(0 0 12px #f3d778b8) drop-shadow(0 5px 9px #0005);transition:transform .3s ease,filter .3s ease}
+.itin-single-seal:hover .itin-hero-logo{filter:drop-shadow(0 0 19px #ffe69bdc) drop-shadow(0 5px 9px #0005);transform:scale(1.045)}
+.itin-seal-values{position:relative;z-index:3;display:flex;justify-content:center;align-items:center;gap:clamp(9px,1.5vw,20px);width:100%;color:#f6e7ba;font-family:"Playfair Display",serif;font-size:clamp(16px,1.8vw,21px);font-weight:700;letter-spacing:.01em;text-shadow:0 0 12px #d5b96a55}
+.itin-seal-values span{white-space:nowrap;transition:color .25s ease,text-shadow .25s ease,transform .25s ease;cursor:default}
+.itin-seal-values span:hover{color:#fff4c8;text-shadow:0 0 12px #f5d778,0 0 25px #f5d77899;transform:translateY(-3px)}
+@keyframes itin-seal-float{0%,100%{translate:0 0}50%{translate:0 -7px}}
+@media(max-width:920px){.itin-emblem-stage{min-height:370px}.itin-single-seal{width:min(350px,76vw)}}
+@media(max-width:560px){.itin-emblem-stage{min-height:310px}.itin-single-seal{width:min(285px,82vw);padding:20px 15px;gap:5px}.itin-single-seal .itin-hero-logo{width:145px;height:145px}.itin-seal-values{gap:10px;font-size:15px}}
+@media(prefers-reduced-motion:reduce){.itin-single-seal,.itin-emblem-stage .art-orbit{animation:none!important;transition:none!important}}
