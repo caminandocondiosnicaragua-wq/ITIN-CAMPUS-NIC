@@ -608,34 +608,29 @@
 
   restoreDraft().finally(() => { readHash(); updateGuide(); updateInterviewForProgram(); });
 
-  // Emblema de inicio: interacción accesible para Piedad, Estudio y Servicio.
+  // Logo institucional: reacción al movimiento del puntero y al enfoque.
   const emblemStage = document.querySelector('.itin-emblem-stage');
   if (emblemStage) {
-    const valueButtons = Array.from(emblemStage.querySelectorAll('.itin-value'));
     const heroLogo = emblemStage.querySelector('.itin-hero-logo');
-    valueButtons.forEach((button) => {
-      button.addEventListener('click', () => {
-        valueButtons.forEach((item) => {
-          const active = item === button;
-          item.classList.toggle('is-active', active);
-          item.setAttribute('aria-pressed', String(active));
-        });
-        if (heroLogo) {
-          heroLogo.style.transform = 'scale(1.045) rotate(2deg)';
-          window.setTimeout(() => { heroLogo.style.transform = ''; }, 260);
-        }
+    if (heroLogo) {
+      emblemStage.addEventListener('pointermove', (event) => {
+        if (event.pointerType === 'touch' || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        const bounds = emblemStage.getBoundingClientRect();
+        const x = (event.clientX - bounds.left) / bounds.width - 0.5;
+        const y = (event.clientY - bounds.top) / bounds.height - 0.5;
+        heroLogo.style.marginLeft = (x * 8).toFixed(1) + 'px';
+        heroLogo.style.marginTop = (y * 8).toFixed(1) + 'px';
       });
-    });
-    emblemStage.addEventListener('pointermove', (event) => {
-      if (!heroLogo || event.pointerType === 'touch' || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-      const bounds = emblemStage.getBoundingClientRect();
-      const x = (event.clientX - bounds.left) / bounds.width - 0.5;
-      const y = (event.clientY - bounds.top) / bounds.height - 0.5;
-      heroLogo.style.transform = 'rotateX(' + (-y * 8).toFixed(2) + 'deg) rotateY(' + (x * 8).toFixed(2) + 'deg) scale(1.025)';
-    });
-    emblemStage.addEventListener('pointerleave', () => {
-      if (heroLogo) heroLogo.style.transform = '';
-    });
+      emblemStage.addEventListener('pointerleave', () => {
+        heroLogo.style.marginLeft = '';
+        heroLogo.style.marginTop = '';
+      });
+      heroLogo.addEventListener('click', () => {
+        heroLogo.classList.remove('itin-logo-pop');
+        void heroLogo.offsetWidth;
+        heroLogo.classList.add('itin-logo-pop');
+      });
+    }
   }
 
 })();
