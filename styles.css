@@ -309,3 +309,7 @@ button, .button {
 @media(max-width:920px){.itin-emblem-stage{min-height:360px}.itin-logo-display{height:360px}.itin-logo-display .itin-hero-logo{width:clamp(235px,38vw,310px);height:clamp(235px,38vw,310px)}.itin-value-seal{width:150px;right:0;bottom:2%}}
 @media(max-width:560px){.itin-emblem-stage{min-height:310px}.itin-logo-display{height:310px}.itin-logo-display .itin-hero-logo{width:245px;height:245px;top:43%}.itin-value-seal{width:125px;right:0;bottom:0;padding:10px}.itin-value-seal span{font-size:12px}}
 @media(prefers-reduced-motion:reduce){.itin-logo-display .itin-hero-logo,.itin-value-seal{animation:none!important;transition:none!important}}
+
+.itin-logo-display .itin-hero-logo{cursor:pointer}
+.itin-logo-display .itin-hero-logo.itin-logo-pop{animation:itin-logo-pop .55s ease-out}
+@keyframes itin-logo-pop{0%{scale:1}45%{scale:1.13}100%{scale:1}}
