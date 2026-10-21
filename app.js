@@ -606,5 +606,75 @@
     document.getElementById('assistant-reply').textContent = replies[button.dataset.help];
   }));
 
+
+  // Acceso administrativo con Google. La identidad se verifica en Apps Script.
+  // Los expedientes no se muestran hasta que también estén protegidos los endpoints privados.
+  const adminStatus = document.getElementById('admin-auth-status');
+  const adminSessionPanel = document.getElementById('admin-session-panel');
+  const adminSessionEmail = document.getElementById('admin-session-email');
+  const adminSignout = document.getElementById('admin-signout');
+  const googleSigninButton = document.getElementById('google-signin-button');
+  const GOOGLE_CLIENT_ID = '900827008031-kfcnsnkalp84tebdua5h7v7ci10b8g4c.apps.googleusercontent.com';
+
+  function setAdminStatus(message) {
+    if (adminStatus) adminStatus.textContent = message;
+  }
+
+  async function handleAdminGoogleCredential(response) {
+    setAdminStatus('Verificando tu cuenta con el servidor…');
+    try {
+      const apiResponse = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ accion: 'adminLogin', credential: response.credential }),
+        redirect: 'follow'
+      });
+      const result = await apiResponse.json();
+      if (!apiResponse.ok || !result.ok) {
+        if (adminSessionPanel) adminSessionPanel.hidden = true;
+        setAdminStatus(result.error || 'No se autorizó el acceso administrativo.');
+        return;
+      }
+      if (adminSessionEmail) adminSessionEmail.textContent = 'Cuenta verificada: ' + result.email;
+      if (adminSessionPanel) adminSessionPanel.hidden = false;
+      setAdminStatus('Identidad verificada. Los expedientes siguen bloqueados mientras terminamos de proteger las consultas privadas.');
+    } catch (error) {
+      if (adminSessionPanel) adminSessionPanel.hidden = true;
+      setAdminStatus('No se pudo contactar al servidor para verificar la cuenta. Inténtalo de nuevo.');
+      console.error('Error verificando acceso administrativo ITIN:', error);
+    }
+  }
+
+  function initializeAdminGoogleSignIn() {
+    if (!googleSigninButton || !adminStatus) return;
+    if (!window.google || !google.accounts || !google.accounts.id) {
+      setAdminStatus('No se pudo cargar el inicio de sesión de Google. Recarga la página e inténtalo de nuevo.');
+      return;
+    }
+    google.accounts.id.initialize({
+      client_id: GOOGLE_CLIENT_ID,
+      callback: handleAdminGoogleCredential
+    });
+    google.accounts.id.renderButton(googleSigninButton, {
+      type: 'standard',
+      theme: 'outline',
+      size: 'large',
+      text: 'signin_with',
+      shape: 'rectangular',
+      width: 280,
+      locale: 'es'
+    });
+  }
+
+  if (adminSignout) {
+    adminSignout.addEventListener('click', () => {
+      if (adminSessionPanel) adminSessionPanel.hidden = true;
+      if (adminSessionEmail) adminSessionEmail.textContent = '';
+      setAdminStatus('Sesión cerrada en esta página. Para una nueva verificación, inicia sesión con Google.');
+      if (window.google && google.accounts && google.accounts.id) google.accounts.id.disableAutoSelect();
+    });
+  }
+  initializeAdminGoogleSignIn();
+
   restoreDraft().finally(() => { readHash(); updateGuide(); updateInterviewForProgram(); });
 })();
