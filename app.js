@@ -177,13 +177,24 @@
       answer.id = 'respuesta-' + index;
       answer.name = 'Respuesta_' + question.id;
       answer.dataset.questionId = question.id;
+      answer.maxLength = 171;
       answer.required = true;
       answer.rows = 2;
-      answer.placeholder = 'Escribe tu respuesta con tus propias palabras…';
-      wrapper.append(label, answer);
+      answer.placeholder = 'Escribe tu respuesta con tus propias palabras… (máximo 171 caracteres)';
+      const counter = document.createElement('small');
+      counter.className = 'answer-character-count';
+      counter.setAttribute('aria-live', 'polite');
+      counter.textContent = '0/171 caracteres';
+      answer.addEventListener('input', () => {
+        if (answer.value.length > 171) answer.value = answer.value.slice(0, 171);
+        counter.textContent = answer.value.length + '/171 caracteres';
+        counter.classList.toggle('is-limit-reached', answer.value.length >= 171);
+      });
+      wrapper.append(label, answer, counter);
       questionBox.append(wrapper);
       const savedAnswer = pendingDraftFields[answer.name];
-      if (typeof savedAnswer === 'string') answer.value = savedAnswer;
+      if (typeof savedAnswer === 'string') answer.value = savedAnswer.slice(0, 171);
+      answer.dispatchEvent(new Event('input'));
     });
     questionBox.querySelectorAll('textarea[data-question-id]').forEach(field => {
       field.addEventListener('input', saveDraft);
