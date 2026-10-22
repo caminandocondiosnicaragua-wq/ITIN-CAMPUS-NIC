@@ -608,6 +608,36 @@
 
   restoreDraft().finally(() => { readHash(); updateGuide(); updateInterviewForProgram(); });
 
+
+  // Navegación local de las tarjetas administrativas. No consulta ni modifica datos.
+  const adminModuleInfo = {
+    solicitudes: { kicker: '01 / ADMISIONES', title: 'Solicitudes y consultas', description: 'Solicitudes de ingreso, documentos y consulta de estudiantes activos e historial.' },
+    matriculas: { kicker: '02 / REGISTRO', title: 'Matrículas', description: 'Registro y consulta de matrículas por estudiante, programa y período.' },
+    pagos: { kicker: '03 / FINANZAS', title: 'Gestión de pagos', description: 'Registro de pagos, recibos, cargos y saldos pendientes.' },
+    academico: { kicker: '04 / CONFIGURACIÓN', title: 'Control académico', description: 'Administración de programas, asignaturas, profesores y precios.' }
+  };
+  const adminDashboard = document.querySelector('#admin-dashboard');
+  const adminModuleView = document.querySelector('#admin-module-view');
+  const adminModuleCards = document.querySelectorAll('[data-admin-module]');
+  const adminBackButton = document.querySelector('#admin-back-dashboard');
+  adminModuleCards.forEach((card) => {
+    card.addEventListener('click', () => {
+      const info = adminModuleInfo[card.dataset.adminModule];
+      if (!info || !adminModuleView) return;
+      document.querySelector('#admin-module-kicker').textContent = info.kicker;
+      document.querySelector('#admin-module-title').textContent = info.title;
+      document.querySelector('#admin-module-description').textContent = info.description;
+      adminDashboard.querySelector('.admin-card-grid').hidden = true;
+      adminModuleView.hidden = false;
+    });
+  });
+  if (adminBackButton && adminModuleView && adminDashboard) {
+    adminBackButton.addEventListener('click', () => {
+      adminModuleView.hidden = true;
+      adminDashboard.querySelector('.admin-card-grid').hidden = false;
+    });
+  }
+
   // Logo institucional: reacción al movimiento del puntero y al enfoque.
   const emblemStage = document.querySelector('.itin-emblem-stage');
   if (emblemStage) {
