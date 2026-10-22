@@ -398,3 +398,7 @@ button, .button {
 .admin-answer-text{white-space:pre-wrap;margin:0;line-height:1.5}
 .admin-detail-actions{display:flex;justify-content:flex-end;gap:10px;padding-top:18px;flex-wrap:wrap}
 @media(max-width:650px){.admin-detail-overlay{padding:8px}.admin-detail-dialog{padding:16px;max-height:95vh}.admin-detail-heading h3{font-size:22px}.admin-detail-fields{grid-template-columns:1fr}.admin-detail-actions>*{width:100%}}
+
+.button-danger{border:1px solid #b34b40;color:#96372e;background:#fff7f5}
+.button-danger:disabled{opacity:.45;cursor:not-allowed}
+.admin-detail-actions{align-items:center}
