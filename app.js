@@ -1463,9 +1463,9 @@
       .fields{width:100%;border-collapse:collapse}.fields td,.fields th{border:1px solid #bbb;padding:7px;text-align:left;vertical-align:top;overflow-wrap:anywhere;font-size:12.5px}
       .fields th{width:32%;background:#f1f1f1}.answer{margin:0 0 12px;break-inside:avoid;font-size:13px}
       .profile-print{float:right;width:38mm;height:46mm;object-fit:cover;margin:0 0 5mm 5mm;border:1px solid #bbb}
-      .document-images{display:flex;flex-direction:column;gap:7mm;align-items:stretch}
-      .id-document{break-inside:avoid;border:0;padding:0;text-align:center;margin:0 0 7mm}
-      .id-document img{display:block;width:100%;height:75mm;object-fit:contain;margin:0 auto 2mm;transform-origin:center center}
+      .document-images{display:flex;flex-direction:column;gap:5mm;align-items:center}
+      .id-document{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;width:100%;break-inside:avoid;border:0;padding:0;text-align:center;margin:0 0 3mm}
+      .id-document img{display:block;width:125mm;height:72mm;max-width:100%;object-fit:cover;margin:0 auto 2mm;transform-origin:center center}
       .id-document img.rotated-90{transform:rotate(90deg)}
       .id-document img.rotated-180{transform:rotate(180deg)}
       .id-document img.rotated-270{transform:rotate(270deg)}
@@ -1475,7 +1475,7 @@
       .diploma-page img{width:100%;height:245mm;object-fit:contain;display:block}
       .missing-file{color:#666;font-style:italic}
       a{color:#222;overflow-wrap:anywhere}
-      @media print{.print-toolbar,.rotate-image{display:none!important}.print-page{min-height:0}.diploma-page{height:270mm}.diploma-page img{height:245mm}.id-document{border:0!important;padding:0!important}.id-document figcaption{display:none!important}}
+      @media print{.print-toolbar,.rotate-image{display:none!important}.print-page{min-height:0}.diploma-page{height:270mm}.diploma-page img{height:245mm}.id-document{border:0!important;padding:0!important;width:100%!important;margin-bottom:3mm!important}.id-document img{width:125mm!important;height:72mm!important;max-width:100%!important;object-fit:cover!important}.id-document figcaption{display:none!important}}
     </style>`;
     const escapeHtml = value => String(value ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
     const imageHtml = (files, className) => files.map((file, index) => {
