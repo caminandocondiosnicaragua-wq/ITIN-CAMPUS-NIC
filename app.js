@@ -609,6 +609,111 @@
   restoreDraft().finally(() => { readHash(); updateGuide(); updateInterviewForProgram(); });
 
 
+
+  // Inicio de sesión administrativo con Google; la autorización la decide Apps Script.
+  const adminLoginPanel = document.getElementById('admin-login-panel');
+  const adminLoginStatus = document.getElementById('admin-login-status');
+  const adminSessionEmail = document.getElementById('admin-session-email');
+  const adminSignout = document.getElementById('admin-signout');
+  let adminCredential = '';
+  let adminLoginPending = false;
+  const GOOGLE_CLIENT_ID = '900827008031-kfcnsnkalp84tebdua5h7v7ci10b8g4c.apps.googleusercontent.com';
+
+  function setAdminStatus(message, state) {
+    if (!adminLoginStatus) return;
+    adminLoginStatus.textContent = message;
+    adminLoginStatus.dataset.state = state || 'neutral';
+  }
+
+  function resetAdminSession(message) {
+    adminCredential = '';
+    if (adminLoginPanel) adminLoginPanel.hidden = false;
+    if (adminDashboard) adminDashboard.hidden = true;
+    if (adminSessionEmail) adminSessionEmail.textContent = '';
+    if (adminModuleView) adminModuleView.hidden = true;
+    const grid = adminDashboard && adminDashboard.querySelector('.admin-card-grid');
+    if (grid) grid.hidden = false;
+    setAdminStatus(message || 'Inicia sesión con Google para verificar tu autorización.', 'neutral');
+  }
+
+  async function verifyAdminCredential(credential) {
+    if (adminLoginPending) return;
+    adminLoginPending = true;
+    setAdminStatus('Verificando tu cuenta con el servidor…', 'neutral');
+    try {
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ accion: 'adminLogin', credential }),
+        redirect: 'follow'
+      });
+      const raw = await response.text();
+      let result;
+      try { result = JSON.parse(raw); } catch (_) {
+        throw new Error('El servidor no devolvió JSON válido. Revisa la implementación publicada de Apps Script.');
+      }
+      if (!response.ok || result.ok !== true || !result.email) {
+        resetAdminSession(result.error || result.mensaje || 'El servidor no autorizó esta cuenta.');
+        setAdminStatus(result.error || result.mensaje || 'El servidor no autorizó esta cuenta.', 'error');
+        return;
+      }
+      adminCredential = credential;
+      if (adminSessionEmail) adminSessionEmail.textContent = result.email;
+      if (adminLoginPanel) adminLoginPanel.hidden = true;
+      if (adminDashboard) adminDashboard.hidden = false;
+      setAdminStatus('Identidad verificada por el servidor.', 'success');
+    } catch (error) {
+      resetAdminSession(error.message || 'No se pudo verificar la cuenta. Inténtalo de nuevo.');
+      setAdminStatus(error.message || 'No se pudo verificar la cuenta. Inténtalo de nuevo.', 'error');
+      console.error('Error verificando acceso administrativo ITIN:', error);
+    } finally {
+      adminLoginPending = false;
+    }
+  }
+
+  function initializeAdminGoogleSignIn() {
+    const button = document.getElementById('google-login-button');
+    if (!button || !adminLoginStatus) return;
+    if (!window.google || !window.google.accounts || !window.google.accounts.id) {
+      setAdminStatus('No se pudo cargar el inicio de sesión de Google. Recarga la página e inténtalo de nuevo.', 'error');
+      return;
+    }
+    window.google.accounts.id.initialize({
+      client_id: GOOGLE_CLIENT_ID,
+      callback: (response) => {
+        if (!response || !response.credential) {
+          setAdminStatus('Google no entregó una credencial válida.', 'error');
+          return;
+        }
+        verifyAdminCredential(response.credential);
+      },
+      auto_select: false,
+      cancel_on_tap_outside: true
+    });
+    button.replaceChildren();
+    window.google.accounts.id.renderButton(button, {
+      type: 'standard', theme: 'outline', size: 'large',
+      text: 'signin_with', shape: 'rectangular', width: 280, locale: 'es'
+    });
+  }
+
+  const googleIdentityScript = document.querySelector('script[src="https://accounts.google.com/gsi/client"]');
+  if (!initializeAdminGoogleSignIn() && googleIdentityScript) {
+    googleIdentityScript.addEventListener('load', initializeAdminGoogleSignIn, { once: true });
+    googleIdentityScript.addEventListener('error', () => {
+      setAdminStatus('No se pudo cargar Google. Comprueba la conexión e inténtalo de nuevo.', 'error');
+    }, { once: true });
+  }
+
+  if (adminSignout) {
+    adminSignout.addEventListener('click', () => {
+      resetAdminSession('Sesión cerrada en esta página.');
+      if (window.google && window.google.accounts && window.google.accounts.id) {
+        window.google.accounts.id.disableAutoSelect();
+      }
+    });
+  }
+
   // Navegación local de las tarjetas administrativas. No consulta ni modifica datos.
   const adminModuleInfo = {
     solicitudes: { kicker: '01 / ADMISIONES', title: 'Solicitudes y consultas', description: 'Solicitudes de ingreso, documentos y consulta de estudiantes activos e historial.' },
