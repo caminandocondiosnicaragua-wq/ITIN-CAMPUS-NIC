@@ -416,3 +416,6 @@ button, .button {
 .admin-profile-photo-controls{display:flex;flex-direction:column;gap:10px;max-width:340px}
 .admin-profile-photo-upload{display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line);border-radius:999px;padding:10px 16px;cursor:pointer;font-size:12px;color:var(--olive);background:#fff;width:max-content}
 .admin-profile-photo-upload input{display:block;max-width:240px;margin-top:8px;font-size:11px}
+
+.admin-answer-program{font-size:12px;font-weight:700;color:var(--olive);padding:10px 12px;background:#f1eadb;border-radius:8px}
+.admin-answer-block{break-inside:avoid;page-break-inside:avoid}
