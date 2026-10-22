@@ -1007,11 +1007,20 @@
 
   function notionFiles(value) {
     if (!value) return [];
-    if (Array.isArray(value)) return value;
+    if (Array.isArray(value)) return value.flatMap(item => notionFiles(item).length ? notionFiles(item) : (item && typeof item === 'object' && (item.file?.url || item.external?.url || item.url) ? [item] : []));
+    if (typeof value === 'string') return /^https:\/\//i.test(value) ? [{ name: 'Documento adjunto', url: value }] : [];
     if (typeof value === 'object') {
       if (Array.isArray(value.files)) return value.files;
       if (value.type === 'files' && Array.isArray(value.files)) return value.files;
-      if (value.files && Array.isArray(value.files)) return value.files;
+      if (value.file?.url || value.external?.url || value.url) return [value];
+      // A veces la API devuelve la propiedad Notion completa: {type:"files", files:[...]}
+      // y otras veces envuelve el contenido dentro de la clave del tipo.
+      for (const key of ['value','data','content','file','files']) {
+        if (value[key] && value[key] !== value) {
+          const found = notionFiles(value[key]);
+          if (found.length) return found;
+        }
+      }
     }
     return [];
   }
@@ -1271,25 +1280,42 @@
       activeAdminDocuments = results[0];
       activeAdminAnswers = results[1];
       activeAdminQuestions = [];
+      // No dependemos de que ESTUDIANTE tenga Programa: la tabla no lo expone
+      // de forma fiable. Cargamos las preguntas de los programas y resolvemos
+      // cada respuesta mediante su relación IdPreg_entrevista (ID de Notion o Bach001/Lic0001).
       const requestedProgram = fieldValue(student, ['Programa','Programa solicitado','ProgramaAcademico','Carrera']) || inferProgramFromAnswers(activeAdminAnswers, student);
-      if (requestedProgram) {
+      const programCandidates = requestedProgram
+        ? [requestedProgram, 'Bachillerato', 'Licenciatura', 'Maestría']
+        : ['Bachillerato', 'Licenciatura', 'Maestría'];
+      const uniquePrograms = [...new Set(programCandidates)];
+      const questionResults = await Promise.all(uniquePrograms.map(async programa => {
         try {
           const qResponse = await fetch(API_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-            body: JSON.stringify({ accion: 'preguntas', programa: requestedProgram }),
+            body: JSON.stringify({ accion: 'preguntas', programa }),
             redirect: 'follow'
           });
           const qText = await qResponse.text();
           const qResult = JSON.parse(qText);
-          if (qResponse.ok && qResult.ok !== false) {
-            const qData = qResult.preguntas || qResult.datos || qResult.data || qResult.registros || [];
-            activeAdminQuestions = Array.isArray(qData) ? qData : [];
-          }
+          if (!qResponse.ok || qResult.ok === false) return [];
+          const qData = qResult.preguntas || qResult.datos || qResult.data || qResult.registros || [];
+          return Array.isArray(qData) ? qData : (Array.isArray(qData.registros) ? qData.registros : []);
         } catch (questionError) {
-          console.warn('No se pudieron resolver los textos de preguntas del programa:', questionError);
+          console.warn('No se pudieron cargar preguntas de ' + programa + ':', questionError);
+          return [];
         }
-      }
+      }));
+      const questionsById = new Map();
+      questionResults.flat().forEach(question => {
+        const props = getProperties(question);
+        const identifiers = [
+          recordId(question),
+          fieldValue(question, ['IdPreg_entrevista','IdPregEntrevista','IdPregunta','Código','Codigo'])
+        ].filter(Boolean);
+        identifiers.forEach(id => questionsById.set(String(id).trim().toLowerCase(), question));
+      });
+      activeAdminQuestions = [...questionsById.values()];
       renderAdminStudentDetail(student);
       renderProfilePhoto(student, activeAdminDocuments);
       showDetailStatus('Expediente preparado. Revisa los documentos y respuestas antes de imprimir.', false);
