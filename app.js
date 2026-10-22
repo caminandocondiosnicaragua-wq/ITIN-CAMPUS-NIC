@@ -1099,6 +1099,20 @@
     }
   }
 
+  const detailRefresh = document.querySelector('#admin-detail-refresh');
+  const detailEnroll = document.querySelector('#admin-detail-enroll');
+  const detailPayments = document.querySelector('#admin-detail-payments');
+  if (detailRefresh) detailRefresh.addEventListener('click', () => {
+    if (activeAdminStudent) openAdminStudentDetail(activeAdminStudent);
+  });
+  function openAdminModuleShortcut(moduleKey) {
+    closeAdminStudentDetail();
+    const card = document.querySelector('[data-admin-module="' + moduleKey + '"]');
+    if (card) card.click();
+  }
+  if (detailEnroll) detailEnroll.addEventListener('click', () => openAdminModuleShortcut('matriculas'));
+  if (detailPayments) detailPayments.addEventListener('click', () => openAdminModuleShortcut('pagos'));
+
   function closeAdminStudentDetail() {
     if (adminDetailOverlay) adminDetailOverlay.hidden = true;
   }
