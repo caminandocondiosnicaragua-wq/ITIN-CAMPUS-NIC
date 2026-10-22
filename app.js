@@ -946,6 +946,39 @@
     return [];
   }
 
+  function relationLabels(value) {
+    if (!value) return [];
+    if (typeof value === 'string') return [value];
+    if (Array.isArray(value)) return value.flatMap(relationLabels);
+    if (typeof value === 'object') {
+      const output = [];
+      for (const key of ['title','name','plain_text','rich_text','title_text','display_value']) {
+        if (value[key]) output.push(...relationLabels(value[key]));
+      }
+      for (const key of ['relation','results','items','value']) {
+        if (value[key]) output.push(...relationLabels(value[key]));
+      }
+      return [...new Set(output)];
+    }
+    return [];
+  }
+
+  function inferProgramFromAnswers(answers, student) {
+    const matching = answers.filter(answer => belongsToStudent(answer, student));
+    for (const answer of matching) {
+      const props = getProperties(answer);
+      const value = props.IdPreg_entrevista || props.IdPregEntrevista;
+      const labels = relationLabels(value).concat(fieldValue(answer, ['IdPreg_entrevista','IdPregEntrevista']));
+      for (const label of labels) {
+        const key = String(label).trim().toLowerCase();
+        if (/^bach\d+/i.test(key) || /^bach/i.test(key)) return 'Bachillerato';
+        if (/^lic\d+/i.test(key) || /^lic/i.test(key)) return 'Licenciatura';
+        if (/^mae|^maa|^mast/i.test(key)) return 'Maestría';
+      }
+    }
+    return '';
+  }
+
   function belongsToStudent(record, student) {
     const id = recordId(student);
     if (!id) return false;
@@ -1172,23 +1205,36 @@
     activeAdminQuestions.forEach((question, index) => {
       const props = getProperties(question);
       const id = recordId(question);
+      const identifier = fieldValue(question, ['IdPreg_entrevista','IdPregEntrevista','IdPregunta','Código','Codigo']);
       const title = fieldValue(question, ['Pregunta','PreguntaTexto','NombrePregunta','Enunciado','Question','TextoPregunta','TituloPregunta','Nombre']);
-      if (id && title) questionIndex.set(id, { title, props, index });
+      const item = { title, props, index, identifier };
+      if (id) questionIndex.set(id, item);
+      if (identifier) questionIndex.set(identifier, item);
+      const pageTitle = readNotionProperty(question.title || question.Title);
+      if (pageTitle) questionIndex.set(pageTitle, item);
     });
     const matchingAnswers = activeAdminAnswers.filter(answer => belongsToStudent(answer, student));
     const answerItems = matchingAnswers.map((answer, index) => {
       const props = getProperties(answer);
       const questionValue = props.IdPreg_entrevista || props.IdPregEntrevista || props.PreguntaRelacionada || props.PreguntaID || props.Preguntas || props.Pregunta;
-      const relationIdsList = relationIds(questionValue);
+      const relationIdsList = [...relationIds(questionValue), ...relationLabels(questionValue)];
+      const questionIdentifier = fieldValue(answer, ['IdPreg_entrevista','IdPregEntrevista']);
+      if (questionIdentifier) relationIdsList.push(questionIdentifier);
       let relatedQuestion = null;
       for (const id of relationIdsList) { if (questionIndex.has(id)) { relatedQuestion = questionIndex.get(id); break; } }
+      if (!relatedQuestion) {
+        const matchingKey = [...questionIndex.keys()].find(key => relationIdsList.some(value => String(value).trim().toLowerCase() === String(key).trim().toLowerCase()));
+        if (matchingKey) relatedQuestion = questionIndex.get(matchingKey);
+      }
       const directQuestion = fieldValue(answer, ['PreguntaTexto','NombrePregunta','Enunciado','Question','TextoPregunta','TituloPregunta']);
       const questionNumberValue = fieldValue(answer, ['Orden','OrdenPregunta','NumeroPregunta','NroPregunta','NumPregunta','Numero','Número']);
       const questionNumber = Number(questionNumberValue);
+      const identifierForNumber = (relatedQuestion && relatedQuestion.identifier) || questionIdentifier || relationLabels(questionValue).join(' ');
+      const embeddedNumber = String(identifierForNumber).match(/(?:bach|lic|mae|mast)0*(\d+)/i);
       return {
         answer, props, index,
         question: directQuestion || (relatedQuestion && relatedQuestion.title) || '',
-        questionNumber: Number.isFinite(questionNumber) && questionNumber > 0 ? questionNumber : (relatedQuestion ? relatedQuestion.index + 1 : index + 1),
+        questionNumber: Number.isFinite(questionNumber) && questionNumber > 0 ? questionNumber : (embeddedNumber ? Number(embeddedNumber[1]) : (relatedQuestion ? relatedQuestion.index + 1 : index + 1)),
         response: fieldValue(answer, ['Respuesta','RespuestaTexto','Contenido','RespuestaEstudiante','Answer','RespuestaAbierta']) ||
           Object.entries(props).filter(([key]) => /respuesta/i.test(key)).map(([,value]) => detailDisplayValue(value)).filter(Boolean).join(' · ')
       };
@@ -1225,7 +1271,7 @@
       activeAdminDocuments = results[0];
       activeAdminAnswers = results[1];
       activeAdminQuestions = [];
-      const requestedProgram = fieldValue(student, ['Programa','Programa solicitado','ProgramaAcademico','Carrera']);
+      const requestedProgram = fieldValue(student, ['Programa','Programa solicitado','ProgramaAcademico','Carrera']) || inferProgramFromAnswers(activeAdminAnswers, student);
       if (requestedProgram) {
         try {
           const qResponse = await fetch(API_URL, {
