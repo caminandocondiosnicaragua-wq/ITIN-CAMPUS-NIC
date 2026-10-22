@@ -326,3 +326,34 @@ button, .button {
 .itin-value-seal{width:clamp(118px,12vw,145px);padding:9px}
 .itin-value-seal span{font-size:clamp(15px,1.35vw,18px);line-height:1.5}
 @media(max-width:560px){.itin-value-seal{width:116px;padding:8px}.itin-value-seal span{font-size:15px}}
+
+/* Panel administrativo ITIN: acceso y cuatro módulos interactivos */
+.admin-intro{padding-bottom:18px}
+.admin-lock{margin-top:22px;max-width:600px}
+.admin-lock h2{font-family:"Playfair Display",serif;font-size:30px;color:var(--olive);margin:0 0 12px}
+.admin-lock>p:not(.eyebrow){max-width:460px}
+.google-login-button{display:flex;justify-content:center;margin:24px auto 12px;min-height:42px}
+.admin-status{font-size:12px!important;color:var(--brown)!important;margin:12px auto!important}
+.admin-dashboard{max-width:1120px;margin:24px auto 0;padding:0 28px}
+.admin-session-bar{display:flex;align-items:center;justify-content:space-between;gap:16px;background:#fffdf9;border:1px solid var(--line);border-radius:16px;padding:15px 18px;margin-bottom:20px}
+.admin-session-bar>div{display:grid;grid-template-columns:10px 1fr;column-gap:9px;align-items:center;font-size:13px;font-weight:700;overflow-wrap:anywhere}
+.admin-session-bar small{grid-column:2;color:var(--muted);font-size:10px;font-weight:400}
+.admin-session-dot{width:8px;height:8px;border-radius:50%;background:#6d9c72;grid-row:1/3}
+.admin-card-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+.admin-module-card{position:relative;display:flex;flex-direction:column;align-items:flex-start;text-align:left;min-height:255px;padding:27px;border:1px solid #d9cfbb;border-radius:22px;background:#fffdf9;color:var(--olive);box-shadow:0 8px 24px #25291d08;cursor:pointer;transition:transform .24s ease,border-color .24s ease,box-shadow .24s ease,background .24s ease}
+.admin-module-card:hover,.admin-module-card:focus-visible{transform:translateY(-6px);border-color:#b8a47a;box-shadow:0 18px 38px #25291d18;background:#fffefa;outline:none}
+.admin-module-card:focus-visible{outline:3px solid #b8a47a;outline-offset:3px}
+.admin-module-icon{display:grid;place-items:center;width:64px;height:64px;border-radius:19px;background:#e9e0ce;color:var(--brown);font-family:"Playfair Display",serif;font-size:32px;margin-bottom:20px;transition:transform .24s ease,background .24s ease}
+.admin-module-card:hover .admin-module-icon{transform:scale(1.08) rotate(-3deg);background:#ded0b1}
+.admin-module-number{font-size:10px;letter-spacing:.16em;color:var(--brown);font-weight:700;margin-bottom:7px}
+.admin-module-card strong{font-family:"Playfair Display",serif;font-size:24px;line-height:1.25;margin-bottom:10px}
+.admin-module-card small{font-size:12px;line-height:1.75;color:var(--muted);max-width:390px}
+.admin-module-link{margin-top:auto;padding-top:20px;color:var(--brown);font-size:12px;font-weight:700}
+.admin-module-view{margin-top:22px;background:#fffdf9;border:1px solid var(--line);border-radius:22px;padding:30px}
+.admin-module-view h2{font-family:"Playfair Display",serif;font-size:32px;color:var(--olive);margin:12px 0}
+.admin-module-view>p:not(.eyebrow){color:var(--muted);font-size:13px}
+.admin-module-notice{padding:18px;background:#f1eadb;border-radius:14px;margin-top:22px}
+.admin-module-notice strong{font-size:13px}
+.admin-module-notice p{font-size:12px;color:var(--muted);margin:7px 0 0}
+.admin-dashboard[hidden],.admin-module-view[hidden]{display:none!important}
+@media(max-width:700px){.admin-dashboard{padding:0 16px}.admin-card-grid{grid-template-columns:1fr;gap:14px}.admin-module-card{min-height:225px;padding:23px}.admin-session-bar{align-items:flex-start;flex-direction:column}.admin-module-card strong{font-size:22px}}
