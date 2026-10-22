@@ -355,6 +355,11 @@
         if (!field.name || ['file','submit','button'].includes(field.type) || field.name === 'Confirmacion' || field.name.startsWith('Respuesta_')) return;
         estudiante[field.name] = field.value.trim();
       });
+      // Las fechas se generan al enviar; no dependen de lo que escriba el estudiante.
+      const fechaSistema = new Date();
+      const fechaHoy = [fechaSistema.getFullYear(), String(fechaSistema.getMonth() + 1).padStart(2, '0'), String(fechaSistema.getDate()).padStart(2, '0')].join('-');
+      estudiante.FechaEntrevista = fechaHoy;
+      const fechaCargaDocumentos = selectedFiles.length ? fechaHoy : '';
       const respuestas = [...questionBox.querySelectorAll('textarea[data-question-id]')].map(field => ({
         preguntaId: field.dataset.questionId,
         respuesta: field.value.trim()
@@ -376,7 +381,8 @@
           accion: 'solicitud',
           programa: programSelect.value,
           estudiante,
-          documentos: {},
+          documentos: fechaCargaDocumentos ? { Fechadecarga: fechaCargaDocumentos } : {},
+          fechaCargaDocumentos,
           archivos,
           respuestas
         }),
