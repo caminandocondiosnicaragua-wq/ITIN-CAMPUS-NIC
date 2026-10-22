@@ -402,3 +402,6 @@ button, .button {
 .button-danger{border:1px solid #b34b40;color:#96372e;background:#fff7f5}
 .button-danger:disabled{opacity:.45;cursor:not-allowed}
 .admin-detail-actions{align-items:center}
+
+.admin-detail-actions .button-danger:not(:disabled){font-weight:700}
+.admin-detail-actions .button-danger:focus-visible{outline:3px solid #b34b40;outline-offset:3px}
