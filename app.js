@@ -930,6 +930,27 @@
     return '';
   }
 
+  function plainNotionText(value) {
+    if (value == null) return '';
+    if (typeof value === 'string' || typeof value === 'number') return String(value).trim();
+    if (Array.isArray(value)) return value.map(plainNotionText).filter(Boolean).join('');
+    if (typeof value !== 'object') return '';
+    if (typeof value.plain_text === 'string') return value.plain_text.trim();
+    if (typeof value.content === 'string') return value.content.trim();
+    for (const key of ['title','rich_text','text','Pregunta','pregunta','value']) {
+      if (value[key] != null) {
+        const text = plainNotionText(value[key]);
+        if (text) return text;
+      }
+    }
+    if (value.type && value[value.type] != null) return plainNotionText(value[value.type]);
+    return '';
+  }
+
+  function normalizedQuestionKey(value) {
+    return String(value || '').trim().toLocaleLowerCase().replace(/\\s+/g, '');
+  }
+
   function recordId(record) {
     return record && (record.id || record.ID || record.idNotion || record.page_id) || '';
   }
@@ -1263,15 +1284,17 @@
     activeAdminQuestions.forEach((question, index) => {
       const props = getProperties(question);
       const id = recordId(question);
-      const identifier = fieldValue(question, ['IdPreg_entrevista','IdPregEntrevista','IdPregunta','Código','Codigo']);
-      const title = fieldValue(question, ['Pregunta','PreguntaTexto','NombrePregunta','Enunciado','Question','TextoPregunta','TituloPregunta','Nombre','title']) ||
-        readNotionProperty(props.Pregunta?.title || props.Pregunta?.rich_text || props.title || question.title || question.Title) ||
-        Object.entries(props).filter(([key]) => /pregunta|enunciado|question|titulo/i.test(key)).map(([,value]) => readNotionProperty(value)).find(Boolean) || '';
+      const identifier = fieldValue(question, ['IdPreg_entrevista','IdPregEntrevista','IdPregunta','Código','Codigo','Name','Nombre']) ||
+        plainNotionText(question.title || question.Title);
+      const title = fieldValue(question, ['Pregunta','PreguntaTexto','NombrePregunta','Enunciado','Question','TextoPregunta','TituloPregunta','title']) ||
+        plainNotionText(props.Pregunta) || plainNotionText(props.pregunta) ||
+        Object.entries(props).filter(([key]) => /^(pregunta|enunciado|question|textopregunta|titulopregunta)$/i.test(key))
+          .map(([,value]) => plainNotionText(value)).find(Boolean) || '';
       const item = { title, props, index, identifier };
-      if (id) questionIndex.set(id, item);
-      if (identifier) questionIndex.set(identifier, item);
-      const pageTitle = readNotionProperty(question.title || question.Title || props.Pregunta?.title || props.Pregunta?.rich_text || props.NombrePregunta?.title);
-      if (pageTitle) questionIndex.set(pageTitle, item);
+      if (id) questionIndex.set(normalizedQuestionKey(id), item);
+      if (identifier) questionIndex.set(normalizedQuestionKey(identifier), item);
+      const pageTitle = plainNotionText(question.title || question.Title);
+      if (pageTitle) questionIndex.set(normalizedQuestionKey(pageTitle), item);
     });
     const matchingAnswers = activeAdminAnswers.filter(answer => belongsToStudent(answer, student));
     const answerItems = matchingAnswers.map((answer, index) => {
@@ -1281,9 +1304,13 @@
       const questionIdentifier = fieldValue(answer, ['IdPreg_entrevista','IdPregEntrevista']);
       if (questionIdentifier) relationIdsList.push(questionIdentifier);
       let relatedQuestion = null;
-      for (const id of relationIdsList) { if (questionIndex.has(id)) { relatedQuestion = questionIndex.get(id); break; } }
+      for (const id of relationIdsList) {
+        const key = normalizedQuestionKey(id);
+        if (questionIndex.has(key)) { relatedQuestion = questionIndex.get(key); break; }
+      }
       if (!relatedQuestion) {
-        const matchingKey = [...questionIndex.keys()].find(key => relationIdsList.some(value => String(value).trim().toLowerCase() === String(key).trim().toLowerCase()));
+        const matchingKey = [...questionIndex.keys()].find(key =>
+          relationIdsList.some(value => normalizedQuestionKey(value) === key));
         if (matchingKey) relatedQuestion = questionIndex.get(matchingKey);
       }
       const directQuestion = fieldValue(answer, ['PreguntaTexto','NombrePregunta','Enunciado','Question','TextoPregunta','TituloPregunta']);
@@ -1293,7 +1320,7 @@
       const embeddedNumber = String(identifierForNumber).match(/(?:bach|lic|mae|mast)0*(\d+)/i);
       return {
         answer, props, index,
-        question: directQuestion || (relatedQuestion && relatedQuestion.title) || '',
+        question: directQuestion || (relatedQuestion && relatedQuestion.title) || questionIdentifier || relationLabels(questionValue).join(', ') || '',
         questionNumber: Number.isFinite(questionNumber) && questionNumber > 0 ? questionNumber : (embeddedNumber ? Number(embeddedNumber[1]) : (relatedQuestion ? relatedQuestion.index + 1 : index + 1)),
         response: fieldValue(answer, ['Respuesta','RespuestaTexto','Contenido','RespuestaEstudiante','Answer','RespuestaAbierta']) ||
           Object.entries(props).filter(([key]) => /respuesta/i.test(key)).map(([,value]) => detailDisplayValue(value)).filter(Boolean).join(' · ')
