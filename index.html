@@ -109,6 +109,12 @@
   <p id="admin-data-status" class="admin-data-status" role="status" aria-live="polite">Preparado para consultar los registros.</p>
   <div class="admin-table-wrap"><table class="admin-data-table"><thead id="admin-students-head"></thead><tbody id="admin-students-body"></tbody></table></div>
   <p class="admin-data-footnote">Consulta de solo lectura. Los registros se solicitan al servidor autorizado y no se modifican desde esta pantalla.</p>
+<div id="admin-student-detail" class="admin-detail-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="admin-detail-title">
+  <div class="admin-detail-dialog"><div class="admin-detail-heading"><div><p class="eyebrow">EXPEDIENTE INDIVIDUAL</p><h3 id="admin-detail-title">Expediente del estudiante</h3></div><button type="button" id="admin-detail-close" class="button button-quiet">Cerrar</button></div>
+  <p id="admin-detail-status" class="admin-data-status" role="status">Preparando expediente…</p>
+  <div id="admin-detail-content"></div>
+  <div class="admin-detail-actions"><button type="button" class="button button-primary" id="admin-detail-print">Imprimir expediente · 4 páginas</button><button type="button" class="button button-quiet" id="admin-detail-close-bottom">Cerrar</button></div>
+  </div></div>
 </div>
 <div id="admin-module-placeholder" class="admin-module-notice"><strong>Funciones en preparación</strong><p>Este módulo se conectará cuando estén verificadas sus consultas y permisos.</p></div></section></div></section>
 </main>
