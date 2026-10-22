@@ -1264,11 +1264,13 @@
       const props = getProperties(question);
       const id = recordId(question);
       const identifier = fieldValue(question, ['IdPreg_entrevista','IdPregEntrevista','IdPregunta','Código','Codigo']);
-      const title = fieldValue(question, ['Pregunta','PreguntaTexto','NombrePregunta','Enunciado','Question','TextoPregunta','TituloPregunta','Nombre']);
+      const title = fieldValue(question, ['Pregunta','PreguntaTexto','NombrePregunta','Enunciado','Question','TextoPregunta','TituloPregunta','Nombre','title']) ||
+        readNotionProperty(props.Pregunta?.title || props.Pregunta?.rich_text || props.title || question.title || question.Title) ||
+        Object.entries(props).filter(([key]) => /pregunta|enunciado|question|titulo/i.test(key)).map(([,value]) => readNotionProperty(value)).find(Boolean) || '';
       const item = { title, props, index, identifier };
       if (id) questionIndex.set(id, item);
       if (identifier) questionIndex.set(identifier, item);
-      const pageTitle = readNotionProperty(question.title || question.Title);
+      const pageTitle = readNotionProperty(question.title || question.Title || props.Pregunta?.title || props.Pregunta?.rich_text || props.NombrePregunta?.title);
       if (pageTitle) questionIndex.set(pageTitle, item);
     });
     const matchingAnswers = activeAdminAnswers.filter(answer => belongsToStudent(answer, student));
@@ -1423,18 +1425,22 @@
     const printStyles = `<style>
       @page{size:A4 portrait;margin:12mm}
       *{box-sizing:border-box}body{font:11px Arial,sans-serif;color:#222;margin:0}
+      .print-toolbar{position:sticky;top:0;background:#f3efe5;padding:10px;margin:0 0 8mm;border-bottom:1px solid #cfc4b0}
+      .print-toolbar button{font:600 14px Arial;padding:10px 16px;cursor:pointer}
       h1{font-size:18px;margin:0 0 5mm}h2{font-size:14px;margin:0 0 5mm}
       .print-page{page-break-after:always;break-after:page;min-height:270mm;position:relative}
       .print-page:last-child{page-break-after:auto;break-after:auto}
       .fields{width:100%;border-collapse:collapse}.fields td,.fields th{border:1px solid #bbb;padding:5px;text-align:left;vertical-align:top;overflow-wrap:anywhere}
       .fields th{width:32%;background:#f1f1f1}.answer{margin:0 0 10px;break-inside:avoid}
       .profile-print{float:right;width:34mm;height:42mm;object-fit:cover;margin:0 0 5mm 5mm;border:1px solid #bbb}
-      .document-images{display:flex;flex-direction:column;gap:8mm;align-items:center}
-      .document-images img{display:block;max-width:100%;max-height:105mm;object-fit:contain}
-      .diploma-page{display:flex;flex-direction:column;min-height:270mm}
+      .document-images{display:grid;grid-template-columns:1fr 1fr;gap:5mm;align-items:center}
+      .document-images img{display:block;width:100%;height:95mm;object-fit:contain}
+      .document-images img.id-card-image.rotated{width:95mm;height:60mm;max-width:none;transform:rotate(90deg);transform-origin:center}
+      .diploma-page{display:flex;flex-direction:column;min-height:270mm;page-break-before:always;break-before:page}
       .diploma-page img{width:100%;height:245mm;object-fit:contain;display:block}
       .missing-file{color:#666;font-style:italic}
       a{color:#222;overflow-wrap:anywhere}
+      @media print{.print-toolbar{display:none}.print-page{min-height:0}.diploma-page{height:270mm}.diploma-page img{height:245mm}}
     </style>`;
     const escapeHtml = value => String(value ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
     const imageHtml = (files, className) => files.map(file => {
@@ -1461,8 +1467,8 @@
         content = (studentPhoto ? '<img class="profile-print" src="' + escapeHtml(studentPhoto) + '" alt="Fotografía del estudiante">' : '<div class="profile-print missing-file">Foto no disponible</div>') + '<table class="fields">' + rows + '</table>';
       } else if (index === 1) {
         content = '<div class="document-images">' +
-          (frontFiles.length ? imageHtml(frontFiles,'') : '<p class="missing-file">Imagen del frente de la cédula no disponible.</p>') +
-          (backFiles.length ? imageHtml(backFiles,'') : '<p class="missing-file">Imagen del reverso de la cédula no disponible.</p>') + '</div>';
+          (frontFiles.length ? imageHtml(frontFiles,'id-card-image') : '<p class="missing-file">Imagen del frente de la cédula no disponible.</p>') +
+          (backFiles.length ? imageHtml(backFiles,'id-card-image') : '<p class="missing-file">Imagen del reverso de la cédula no disponible.</p>') + '</div>';
       } else if (index === 2) {
         content = diplomaFiles.length ? imageHtml(diplomaFiles,'') : '<p class="missing-file">No se adjuntó diploma o constancia académica.</p>';
       } else {
@@ -1472,7 +1478,7 @@
       return '<section class="print-page' + special + '"><h1>ITIN CAMPUS</h1><h2>' + escapeHtml(section.querySelector('h4')?.textContent || '') + '</h2>' + content + '</section>';
     }).join('');
     printWindow.document.open();
-    printWindow.document.write('<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Expediente - ' + escapeHtml(studentField(activeAdminStudent, 'nombre')) + '</title>' + printStyles + '</head><body>' + pages + '<script>window.onload=()=>{const images=[...document.images];Promise.all(images.map(img=>img.complete?Promise.resolve():new Promise(resolve=>{img.onload=resolve;img.onerror=resolve;}))).then(()=>window.print());};<\\/script></body></html>');
+    printWindow.document.write('<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Expediente - ' + escapeHtml(studentField(activeAdminStudent, 'nombre')) + '</title>' + printStyles + '</head><body><div class="print-toolbar"><button type="button" onclick="window.print()">Imprimir / Guardar como PDF</button> <span>Usa orientación vertical y tamaño A4.</span></div>' + pages + '<script>window.addEventListener("load",()=>{document.querySelectorAll(".id-card-image").forEach(img=>{if(img.naturalHeight>img.naturalWidth)img.classList.add("rotated");});});<\\/script></body></html>');
     printWindow.document.close();
   });
 
