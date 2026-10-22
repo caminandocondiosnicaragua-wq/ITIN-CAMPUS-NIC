@@ -1346,30 +1346,58 @@
     const printWindow = window.open('', '_blank');
     if (!printWindow) { showDetailStatus('El navegador bloqueó la ventana de impresión. Permite ventanas emergentes para este sitio.', true); return; }
     const printStyles = `<style>
-      @page{size:A4;margin:16mm}
-      body{font:12px Arial,sans-serif;color:#222}
-      h1{font-size:20px;margin:0 0 8px}h2{font-size:17px;margin:0 0 18px}
-      .print-page{page-break-after:always;break-after:page;min-height:250mm}
+      @page{size:A4 portrait;margin:12mm}
+      *{box-sizing:border-box}body{font:11px Arial,sans-serif;color:#222;margin:0}
+      h1{font-size:18px;margin:0 0 5mm}h2{font-size:14px;margin:0 0 5mm}
+      .print-page{page-break-after:always;break-after:page;min-height:270mm;position:relative}
       .print-page:last-child{page-break-after:auto;break-after:auto}
-      .fields{width:100%;border-collapse:collapse}.fields td,.fields th{border:1px solid #bbb;padding:7px;text-align:left;vertical-align:top}
-      .fields th{width:32%;background:#f1f1f1}.answer{margin:0 0 18px;break-inside:avoid}
-      a{color:#0645ad;overflow-wrap:anywhere}
+      .fields{width:100%;border-collapse:collapse}.fields td,.fields th{border:1px solid #bbb;padding:5px;text-align:left;vertical-align:top;overflow-wrap:anywhere}
+      .fields th{width:32%;background:#f1f1f1}.answer{margin:0 0 10px;break-inside:avoid}
+      .profile-print{float:right;width:34mm;height:42mm;object-fit:cover;margin:0 0 5mm 5mm;border:1px solid #bbb}
+      .document-images{display:flex;flex-direction:column;gap:8mm;align-items:center}
+      .document-images img{display:block;max-width:100%;max-height:105mm;object-fit:contain}
+      .diploma-page{display:flex;flex-direction:column;min-height:270mm}
+      .diploma-page img{width:100%;height:245mm;object-fit:contain;display:block}
+      .missing-file{color:#666;font-style:italic}
+      a{color:#222;overflow-wrap:anywhere}
     </style>`;
     const escapeHtml = value => String(value ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+    const imageHtml = (files, className) => files.map(file => {
+      const url = notionFileUrl(file);
+      return url && /^https:\/\//i.test(url) ? '<img class="' + className + '" src="' + escapeHtml(url) + '" alt="' + escapeHtml(file.name || 'Documento del estudiante') + '">' : '';
+    }).join('');
+    const studentPhoto = selectedProfilePhotoUrl || (adminProfilePhotoFrame && adminProfilePhotoFrame.querySelector('img') ? adminProfilePhotoFrame.querySelector('img').src : '');
+    const matchingDocs = activeAdminDocuments.filter(doc => belongsToStudent(doc, activeAdminStudent));
+    const docProps = Object.assign({}, ...matchingDocs.map(getProperties));
+    const findFiles = names => {
+      for (const name of names) {
+        const files = notionFiles(docProps[name]);
+        if (files.length) return files;
+      }
+      return [];
+    };
+    const frontFiles = findFiles(['CedulaFrente','CedulaFisica','Cedula']);
+    const backFiles = findFiles(['CedulaReverso','CedulaDigitalReverso']);
+    const diplomaFiles = findFiles(['SubirDiploma','DiplomaDigital']);
     const pages = [...adminDetailContent.querySelectorAll('.admin-detail-page')].map((section,index) => {
       let content = '';
       if (index === 0) {
         const rows = [...section.querySelectorAll('.admin-detail-fields > div')].map(row => '<tr><th>' + escapeHtml(row.querySelector('dt')?.textContent) + '</th><td>' + escapeHtml(row.querySelector('dd')?.textContent) + '</td></tr>').join('');
-        content = '<table class="fields">' + rows + '</table>';
-      } else if (index === 1 || index === 2) {
-        content = [...section.querySelectorAll('p')].map(p => '<p>' + [...p.childNodes].map(n => n.nodeType === 3 ? escapeHtml(n.textContent) : n.tagName === 'A' ? '<a href="' + escapeHtml(n.href) + '">' + escapeHtml(n.textContent) + '</a>' : escapeHtml(n.textContent)).join('') + '</p>').join('');
+        content = (studentPhoto ? '<img class="profile-print" src="' + escapeHtml(studentPhoto) + '" alt="Fotografía del estudiante">' : '<div class="profile-print missing-file">Foto no disponible</div>') + '<table class="fields">' + rows + '</table>';
+      } else if (index === 1) {
+        content = '<div class="document-images">' +
+          (frontFiles.length ? imageHtml(frontFiles,'') : '<p class="missing-file">Imagen del frente de la cédula no disponible.</p>') +
+          (backFiles.length ? imageHtml(backFiles,'') : '<p class="missing-file">Imagen del reverso de la cédula no disponible.</p>') + '</div>';
+      } else if (index === 2) {
+        content = diplomaFiles.length ? imageHtml(diplomaFiles,'') : '<p class="missing-file">No se adjuntó diploma o constancia académica.</p>';
       } else {
         content = [...section.querySelectorAll('.admin-answer-block')].map(block => '<div class="answer"><strong>' + escapeHtml(block.querySelector('.admin-answer-question')?.textContent) + '</strong><p>' + escapeHtml(block.querySelector('.admin-answer-text')?.textContent) + '</p></div>').join('') || '<p>' + escapeHtml(section.querySelector('p')?.textContent || '') + '</p>';
       }
-      return '<section class="print-page"><h1>ITIN CAMPUS</h1><h2>' + escapeHtml(section.querySelector('h4')?.textContent || '') + '</h2>' + content + '</section>';
+      const special = index === 2 ? ' diploma-page' : '';
+      return '<section class="print-page' + special + '"><h1>ITIN CAMPUS</h1><h2>' + escapeHtml(section.querySelector('h4')?.textContent || '') + '</h2>' + content + '</section>';
     }).join('');
     printWindow.document.open();
-    printWindow.document.write('<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Expediente - ' + escapeHtml(studentField(activeAdminStudent, 'nombre')) + '</title>' + printStyles + '</head><body>' + pages + '<script>window.onload=()=>window.print();<\/script></body></html>');
+    printWindow.document.write('<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Expediente - ' + escapeHtml(studentField(activeAdminStudent, 'nombre')) + '</title>' + printStyles + '</head><body>' + pages + '<script>window.onload=()=>{const images=[...document.images];Promise.all(images.map(img=>img.complete?Promise.resolve():new Promise(resolve=>{img.onload=resolve;img.onerror=resolve;}))).then(()=>window.print());};<\\/script></body></html>');
     printWindow.document.close();
   });
 
