@@ -1316,12 +1316,15 @@
       const directQuestion = fieldValue(answer, ['PreguntaTexto','NombrePregunta','Enunciado','Question','TextoPregunta','TituloPregunta']);
       const questionNumberValue = fieldValue(answer, ['Orden','OrdenPregunta','NumeroPregunta','NroPregunta','NumPregunta','Numero','Número']);
       const questionNumber = Number(questionNumberValue);
-      const identifierForNumber = (relatedQuestion && relatedQuestion.identifier) || questionIdentifier || relationLabels(questionValue).join(' ');
+      const resolvedQuestion = directQuestion || (relatedQuestion && relatedQuestion.title) || '';
+      const identifierForNumber = questionIdentifier || relationLabels(questionValue).join(' ') || (relatedQuestion && relatedQuestion.identifier) || '';
       const embeddedNumber = String(identifierForNumber).match(/(?:bach|lic|mae|mast)0*(\d+)/i);
+      const numberFromQuestionText = String(resolvedQuestion).match(/^\s*(\d+)\s*[.)-]/);
+      const resolvedNumber = numberFromQuestionText ? Number(numberFromQuestionText[1]) : (embeddedNumber ? Number(embeddedNumber[1]) : NaN);
       return {
         answer, props, index,
-        question: directQuestion || (relatedQuestion && relatedQuestion.title) || questionIdentifier || relationLabels(questionValue).join(', ') || '',
-        questionNumber: Number.isFinite(questionNumber) && questionNumber > 0 ? questionNumber : (embeddedNumber ? Number(embeddedNumber[1]) : (relatedQuestion ? relatedQuestion.index + 1 : index + 1)),
+        question: resolvedQuestion || questionIdentifier || relationLabels(questionValue).join(', ') || '',
+        questionNumber: Number.isFinite(resolvedNumber) && resolvedNumber > 0 ? resolvedNumber : (Number.isFinite(questionNumber) && questionNumber > 0 ? questionNumber : (relatedQuestion ? relatedQuestion.index + 1 : index + 1)),
         response: fieldValue(answer, ['Respuesta','RespuestaTexto','Contenido','RespuestaEstudiante','Answer','RespuestaAbierta']) ||
           Object.entries(props).filter(([key]) => /respuesta/i.test(key)).map(([,value]) => detailDisplayValue(value)).filter(Boolean).join(' · ')
       };
@@ -1335,7 +1338,7 @@
       answerItems.forEach((item, index) => {
         const block = document.createElement('div'); block.className = 'admin-answer-block';
         const q = document.createElement('p'); q.className = 'admin-answer-question';
-        q.textContent = 'Pregunta ' + item.questionNumber + ': ' + (item.question || 'No se pudo resolver el texto de la pregunta relacionada.');
+        q.textContent = item.question || 'No se pudo resolver el texto de la pregunta relacionada.';
         const a = document.createElement('p'); a.className = 'admin-answer-text';
         a.textContent = item.response || 'Respuesta no disponible en los campos devueltos.';
         block.append(q,a); answerPage.appendChild(block);
