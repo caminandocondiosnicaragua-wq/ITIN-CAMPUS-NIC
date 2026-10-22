@@ -1454,28 +1454,36 @@
     if (!printWindow) { showDetailStatus('El navegador bloqueó la ventana de impresión. Permite ventanas emergentes para este sitio.', true); return; }
     const printStyles = `<style>
       @page{size:A4 portrait;margin:12mm}
-      *{box-sizing:border-box}body{font:11px Arial,sans-serif;color:#222;margin:0}
-      .print-toolbar{position:sticky;top:0;background:#f3efe5;padding:10px;margin:0 0 8mm;border-bottom:1px solid #cfc4b0}
-      .print-toolbar button{font:600 14px Arial;padding:10px 16px;cursor:pointer}
-      h1{font-size:18px;margin:0 0 5mm}h2{font-size:14px;margin:0 0 5mm}
+      *{box-sizing:border-box}body{font:13px/1.45 Arial,sans-serif;color:#222;margin:0}
+      .print-toolbar{position:sticky;top:0;background:#f3efe5;padding:10px;margin:0 0 8mm;border-bottom:1px solid #cfc4b0;z-index:5}
+      .print-toolbar button,.rotate-image{font:600 14px Arial;padding:10px 16px;cursor:pointer}
+      h1{font-size:22px;margin:0 0 5mm}h2{font-size:17px;margin:0 0 5mm}
       .print-page{page-break-after:always;break-after:page;min-height:270mm;position:relative}
       .print-page:last-child{page-break-after:auto;break-after:auto}
-      .fields{width:100%;border-collapse:collapse}.fields td,.fields th{border:1px solid #bbb;padding:5px;text-align:left;vertical-align:top;overflow-wrap:anywhere}
-      .fields th{width:32%;background:#f1f1f1}.answer{margin:0 0 10px;break-inside:avoid}
-      .profile-print{float:right;width:34mm;height:42mm;object-fit:cover;margin:0 0 5mm 5mm;border:1px solid #bbb}
-      .document-images{display:grid;grid-template-columns:1fr 1fr;gap:5mm;align-items:center}
-      .document-images img{display:block;width:100%;height:95mm;object-fit:contain}
-      .document-images img.id-card-image.rotated{width:95mm;height:60mm;max-width:none;transform:rotate(90deg);transform-origin:center}
+      .fields{width:100%;border-collapse:collapse}.fields td,.fields th{border:1px solid #bbb;padding:7px;text-align:left;vertical-align:top;overflow-wrap:anywhere;font-size:12.5px}
+      .fields th{width:32%;background:#f1f1f1}.answer{margin:0 0 12px;break-inside:avoid;font-size:13px}
+      .profile-print{float:right;width:38mm;height:46mm;object-fit:cover;margin:0 0 5mm 5mm;border:1px solid #bbb}
+      .document-images{display:flex;flex-direction:column;gap:7mm;align-items:stretch}
+      .id-document{break-inside:avoid;border:1px solid #bbb;padding:4mm;text-align:center}
+      .id-document img{display:block;width:100%;height:75mm;object-fit:contain;margin:0 auto 3mm;transform-origin:center center}
+      .id-document img.rotated-90{transform:rotate(90deg);width:75mm;height:45mm;margin:15mm auto}
+      .id-document img.rotated-180{transform:rotate(180deg)}
+      .id-document img.rotated-270{transform:rotate(270deg);width:75mm;height:45mm;margin:15mm auto}
       .diploma-page{display:flex;flex-direction:column;min-height:270mm;page-break-before:always;break-before:page}
       .diploma-page img{width:100%;height:245mm;object-fit:contain;display:block}
       .missing-file{color:#666;font-style:italic}
       a{color:#222;overflow-wrap:anywhere}
-      @media print{.print-toolbar{display:none}.print-page{min-height:0}.diploma-page{height:270mm}.diploma-page img{height:245mm}}
+      @media print{.print-toolbar,.rotate-image{display:none}.print-page{min-height:0}.diploma-page{height:270mm}.diploma-page img{height:245mm}}
     </style>`;
     const escapeHtml = value => String(value ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
-    const imageHtml = (files, className) => files.map(file => {
+    const imageHtml = (files, className) => files.map((file, index) => {
       const url = notionFileUrl(file);
-      return url && /^https:\/\//i.test(url) ? '<img class="' + className + '" src="' + escapeHtml(url) + '" alt="' + escapeHtml(file.name || 'Documento del estudiante') + '">' : '';
+      if (!url || !/^https:\/\//i.test(url)) return '';
+      const imageClass = className ? ' class="' + className + '"' : '';
+      const rotationKey = 'itin-id-rotation-' + encodeURIComponent(studentField(activeAdminStudent, 'nombre') || 'estudiante') + '-' + encodeURIComponent(file.name || ('cedula-' + index));
+      return '<figure class="id-document"><img' + imageClass + ' data-rotation-key="' + escapeHtml(rotationKey) + '" src="' + escapeHtml(url) + '" alt="' + escapeHtml(file.name || 'Documento del estudiante') + '">' +
+        (className === 'id-card-image' ? '<button type="button" class="rotate-image" data-rotate-image>Girar imagen 90°</button>' : '') +
+        '<figcaption>' + escapeHtml(file.name || 'Documento adjunto') + '</figcaption></figure>';
     }).join('');
     const studentPhoto = selectedProfilePhotoUrl || (adminProfilePhotoFrame && adminProfilePhotoFrame.querySelector('img') ? adminProfilePhotoFrame.querySelector('img').src : '');
     const matchingDocs = activeAdminDocuments.filter(doc => belongsToStudent(doc, activeAdminStudent));
@@ -1497,8 +1505,8 @@
         content = (studentPhoto ? '<img class="profile-print" src="' + escapeHtml(studentPhoto) + '" alt="Fotografía del estudiante">' : '<div class="profile-print missing-file">Foto no disponible</div>') + '<table class="fields">' + rows + '</table>';
       } else if (index === 1) {
         content = '<div class="document-images">' +
-          (frontFiles.length ? imageHtml(frontFiles,'id-card-image') : '<p class="missing-file">Imagen del frente de la cédula no disponible.</p>') +
-          (backFiles.length ? imageHtml(backFiles,'id-card-image') : '<p class="missing-file">Imagen del reverso de la cédula no disponible.</p>') + '</div>';
+          (frontFiles.length ? '<h3>1. Cédula · frente</h3>' + imageHtml(frontFiles,'id-card-image') : '<p class="missing-file">Imagen del frente de la cédula no disponible.</p>') +
+          (backFiles.length ? '<h3>2. Cédula · reverso</h3>' + imageHtml(backFiles,'id-card-image') : '<p class="missing-file">Imagen del reverso de la cédula no disponible.</p>') + '</div>';
       } else if (index === 2) {
         content = diplomaFiles.length ? imageHtml(diplomaFiles,'') : '<p class="missing-file">No se adjuntó diploma o constancia académica.</p>';
       } else {
@@ -1508,7 +1516,11 @@
       return '<section class="print-page' + special + '"><h1>ITIN CAMPUS</h1><h2>' + escapeHtml(section.querySelector('h4')?.textContent || '') + '</h2>' + content + '</section>';
     }).join('');
     printWindow.document.open();
-    printWindow.document.write('<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Expediente - ' + escapeHtml(studentField(activeAdminStudent, 'nombre')) + '</title>' + printStyles + '</head><body><div class="print-toolbar"><button type="button" onclick="window.print()">Imprimir / Guardar como PDF</button> <span>Usa orientación vertical y tamaño A4.</span></div>' + pages + '<script>window.addEventListener("load",()=>{document.querySelectorAll(".id-card-image").forEach(img=>{if(img.naturalHeight>img.naturalWidth)img.classList.add("rotated");});});<\\/script></body></html>');
+    printWindow.document.write('<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Expediente - ' + escapeHtml(studentField(activeAdminStudent, 'nombre')) + '</title>' + printStyles + '</head><body><div class="print-toolbar"><button type="button" onclick="window.print()">Imprimir / Guardar como PDF</button> <span>Formato A4 vertical. Puedes girar las imágenes de cédula; la orientación elegida se guarda en este navegador.</span></div>' + pages + '<script>' +
+      'document.querySelectorAll("[data-rotation-key]").forEach(img=>{try{img.dataset.rotation=localStorage.getItem(img.dataset.rotationKey)||"0";}catch(e){img.dataset.rotation="0";}applyRotation(img);});' +
+      'function applyRotation(img){img.classList.remove("rotated-90","rotated-180","rotated-270");const n=Number(img.dataset.rotation||0);if(n)img.classList.add("rotated-"+n);}' +
+      'document.querySelectorAll("[data-rotate-image]").forEach(btn=>btn.addEventListener("click",()=>{const img=btn.parentElement.querySelector("img");img.dataset.rotation=String((Number(img.dataset.rotation||0)+90)%360);applyRotation(img);try{localStorage.setItem(img.dataset.rotationKey,img.dataset.rotation);}catch(e){};}));' +
+      '</script></body></html>');
     printWindow.document.close();
   });
 
