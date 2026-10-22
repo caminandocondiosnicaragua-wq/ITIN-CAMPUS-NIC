@@ -474,3 +474,15 @@ button, .button {
   .admin-document-gallery { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .admin-document-figure img { max-height: 9cm; }
 }
+
+/* Contador del límite de caracteres de respuestas de entrevista */
+.answer-character-count {
+  justify-self: end;
+  color: var(--muted, #716d61);
+  font-size: 11px;
+  line-height: 1.4;
+}
+.answer-character-count.is-limit-reached {
+  color: #9b3d32;
+  font-weight: 700;
+}
