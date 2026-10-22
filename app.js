@@ -720,7 +720,7 @@
     });
   }
 
-  // Navegación local de las tarjetas administrativas. No consulta ni modifica datos.
+  // Módulo Solicitudes: consulta de estudiantes en modo de solo lectura.
   const adminModuleInfo = {
     solicitudes: { kicker: '01 / ADMISIONES', title: 'Solicitudes y consultas', description: 'Solicitudes de ingreso, documentos y consulta de estudiantes activos e historial.' },
     matriculas: { kicker: '02 / REGISTRO', title: 'Matrículas', description: 'Registro y consulta de matrículas por estudiante, programa y período.' },
@@ -731,6 +731,146 @@
   const adminModuleView = document.querySelector('#admin-module-view');
   const adminModuleCards = document.querySelectorAll('[data-admin-module]');
   const adminBackButton = document.querySelector('#admin-back-dashboard');
+  const adminSolicitudesTools = document.querySelector('#admin-solicitudes-tools');
+  const adminModulePlaceholder = document.querySelector('#admin-module-placeholder');
+  const adminStudentSearch = document.querySelector('#admin-student-search');
+  const adminRefreshStudents = document.querySelector('#admin-refresh-students');
+  const adminDataStatus = document.querySelector('#admin-data-status');
+  const adminStudentsHead = document.querySelector('#admin-students-head');
+  const adminStudentsBody = document.querySelector('#admin-students-body');
+  let adminStudents = [];
+
+  function setAdminDataStatus(message, error) {
+    if (!adminDataStatus) return;
+    adminDataStatus.textContent = message;
+    adminDataStatus.dataset.state = error ? 'error' : 'neutral';
+  }
+
+  function readNotionProperty(value) {
+    if (value == null) return '';
+    if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') return String(value);
+    if (Array.isArray(value)) return value.map(readNotionProperty).filter(Boolean).join(', ');
+    if (typeof value === 'object') {
+      if (value.title) return readNotionProperty(value.title);
+      if (value.rich_text) return readNotionProperty(value.rich_text);
+      if (value.name) return readNotionProperty(value.name);
+      if (value.plain_text) return value.plain_text;
+      if (value.number != null) return String(value.number);
+      if (value.email) return value.email;
+      if (value.phone_number) return value.phone_number;
+      if (value.select) return readNotionProperty(value.select);
+      if (value.status) return readNotionProperty(value.status);
+      if (value.date) return readNotionProperty(value.date.start || value.date);
+      if (value.start) return String(value.start);
+      if (value.url) return value.url;
+      if (value.formula) return readNotionProperty(value.formula);
+      if (value.checkbox != null) return value.checkbox ? 'Sí' : 'No';
+      if (value.type && value[value.type] != null) return readNotionProperty(value[value.type]);
+      if (value.id && Object.keys(value).length <= 3) return '';
+      return '';
+    }
+    return '';
+  }
+
+  function studentField(student, key) {
+    const properties = student && (student.properties || student.propiedades || student);
+    if (!properties || typeof properties !== 'object') return '';
+    const aliases = {
+      nombre: ['NombreCompleto', 'Nombre completo', 'Nombre', 'title'],
+      cedula: ['Cedula', 'Cédula', 'CedulaDigital'],
+      correo: ['Correo', 'Email', 'Correo electrónico'],
+      celular: ['Celular', 'Teléfono', 'Telefono'],
+      programa: ['Programa', 'Programa solicitado'],
+      fecha: ['FechaEntrevista', 'Fecha de entrevista', 'Created', 'created_time'],
+      estado: ['Estado', 'EstadoSolicitud', 'Estado de solicitud']
+    };
+    for (const name of aliases[key] || []) {
+      if (properties[name] != null) {
+        const value = readNotionProperty(properties[name]);
+        if (value) return value;
+      }
+    }
+    if (key === 'nombre' && student && student.title) return readNotionProperty(student.title);
+    if (key === 'fecha' && student && student.created_time) return String(student.created_time).slice(0, 10);
+    return '';
+  }
+
+  function renderAdminStudents() {
+    if (!adminStudentsHead || !adminStudentsBody) return;
+    const columns = [
+      ['nombre', 'Estudiante'], ['cedula', 'Cédula'], ['correo', 'Correo'],
+      ['celular', 'Teléfono'], ['programa', 'Programa'], ['fecha', 'Fecha'], ['estado', 'Estado']
+    ];
+    adminStudentsHead.replaceChildren();
+    const headerRow = document.createElement('tr');
+    columns.forEach(([, label]) => {
+      const th = document.createElement('th');
+      th.scope = 'col';
+      th.textContent = label;
+      headerRow.appendChild(th);
+    });
+    adminStudentsHead.appendChild(headerRow);
+    const query = (adminStudentSearch && adminStudentSearch.value || '').trim().toLocaleLowerCase();
+    const visible = adminStudents.filter(student => columns.some(([key]) =>
+      studentField(student, key).toLocaleLowerCase().includes(query)
+    ));
+    adminStudentsBody.replaceChildren();
+    if (!visible.length) {
+      const tr = document.createElement('tr');
+      const td = document.createElement('td');
+      td.colSpan = columns.length;
+      td.textContent = adminStudents.length ? 'No hay registros que coincidan con la búsqueda.' : 'No se encontraron solicitudes en los registros devueltos.';
+      tr.appendChild(td);
+      adminStudentsBody.appendChild(tr);
+      return;
+    }
+    visible.forEach(student => {
+      const tr = document.createElement('tr');
+      columns.forEach(([key]) => {
+        const td = document.createElement('td');
+        td.textContent = studentField(student, key) || '—';
+        tr.appendChild(td);
+      });
+      adminStudentsBody.appendChild(tr);
+    });
+    setAdminDataStatus('Registros recibidos: ' + adminStudents.length + '. Coincidencias: ' + visible.length + '.', false);
+  }
+
+  async function loadAdminStudents() {
+    if (!adminCredential) {
+      setAdminDataStatus('Tu sesión no tiene una credencial activa. Cierra sesión e inicia de nuevo.', true);
+      return;
+    }
+    if (adminRefreshStudents) adminRefreshStudents.disabled = true;
+    setAdminDataStatus('Consultando estudiantes autorizados…', false);
+    try {
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ accion: 'adminConsulta', credential: adminCredential, tipo: 'estudiantes', limite: 100 }),
+        redirect: 'follow'
+      });
+      const raw = await response.text();
+      let result;
+      try { result = JSON.parse(raw); } catch (_) { throw new Error('La API no devolvió JSON válido.'); }
+      if (!response.ok || result.ok !== true) throw new Error(result.error || result.mensaje || 'El servidor rechazó la consulta.');
+      const data = result.datos || result.data || result.registros || result.estudiantes || [];
+      adminStudents = Array.isArray(data) ? data : (Array.isArray(data.registros) ? data.registros : []);
+      renderAdminStudents();
+      setAdminDataStatus('Consulta completada. Registros recibidos: ' + adminStudents.length + '.', false);
+    } catch (error) {
+      adminStudents = [];
+      renderAdminStudents();
+      setAdminDataStatus(error.message || 'No se pudieron consultar los estudiantes.', true);
+      console.error('Error consultando estudiantes ITIN:', error);
+    } finally {
+      if (adminRefreshStudents) adminRefreshStudents.disabled = false;
+    }
+  }
+
+  if (adminStudentSearch) adminStudentSearch.addEventListener('input', renderAdminStudents);
+  if (adminRefreshStudents) adminRefreshStudents.addEventListener('click', loadAdminStudents);
+
   adminModuleCards.forEach((card) => {
     card.addEventListener('click', () => {
       const info = adminModuleInfo[card.dataset.adminModule];
@@ -740,6 +880,10 @@
       document.querySelector('#admin-module-description').textContent = info.description;
       adminDashboard.querySelector('.admin-card-grid').hidden = true;
       adminModuleView.hidden = false;
+      const isSolicitudes = card.dataset.adminModule === 'solicitudes';
+      if (adminSolicitudesTools) adminSolicitudesTools.hidden = !isSolicitudes;
+      if (adminModulePlaceholder) adminModulePlaceholder.hidden = isSolicitudes;
+      if (isSolicitudes) loadAdminStudents();
     });
   });
   if (adminBackButton && adminModuleView && adminDashboard) {
