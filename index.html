@@ -112,6 +112,10 @@
 <div id="admin-student-detail" class="admin-detail-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="admin-detail-title">
   <div class="admin-detail-dialog"><div class="admin-detail-heading"><div><p class="eyebrow">EXPEDIENTE INDIVIDUAL</p><h3 id="admin-detail-title">Expediente del estudiante</h3></div><button type="button" id="admin-detail-close" class="button button-quiet">Cerrar</button></div>
   <p id="admin-detail-status" class="admin-data-status" role="status">Preparando expediente…</p>
+  <div class="admin-profile-photo-area">
+    <div id="admin-profile-photo-frame" class="admin-profile-photo-frame"><div class="admin-profile-photo-placeholder"><span aria-hidden="true">＋</span><strong>Foto de perfil</strong><small>No se ha encontrado una foto guardada</small></div></div>
+    <div class="admin-profile-photo-controls"><label class="admin-profile-photo-upload">Seleccionar foto<input id="admin-profile-photo-input" type="file" accept="image/png,image/jpeg,image/webp"></label><p id="admin-profile-photo-status" class="admin-data-footnote">Si el estudiante ya subió su foto, aparecerá aquí.</p></div>
+  </div>
   <div id="admin-detail-content"></div>
   <div class="admin-detail-actions"><button type="button" class="button button-quiet" id="admin-detail-refresh">Actualizar expediente</button><button type="button" class="button button-quiet" id="admin-detail-enroll">Matricular</button><button type="button" class="button button-quiet" id="admin-detail-payments">Gestión de pagos</button><button type="button" class="button button-danger" id="admin-detail-delete" disabled title="Se habilitará cuando el servidor tenga la eliminación en cascada verificada">Eliminar</button><button type="button" class="button button-primary" id="admin-detail-print">Imprimir expediente · 4 páginas</button><button type="button" class="button button-quiet" id="admin-detail-close-bottom">Cerrar</button></div><p class="admin-data-footnote">Eliminar permanecerá deshabilitado hasta implementar y verificar la eliminación en cascada en el servidor por identificador relacionado.</p>
   </div></div>
