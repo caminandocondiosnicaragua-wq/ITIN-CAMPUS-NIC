@@ -826,10 +826,20 @@
     }
     visible.forEach(student => {
       const tr = document.createElement('tr');
+      tr.className = 'admin-student-row';
+      tr.tabIndex = 0;
+      tr.setAttribute('role', 'button');
+      tr.setAttribute('aria-label', 'Abrir expediente de ' + (studentField(student, 'nombre') || 'estudiante'));
+      tr.title = 'Abrir expediente del estudiante';
       columns.forEach(([key]) => {
         const td = document.createElement('td');
         td.textContent = studentField(student, key) || '—';
         tr.appendChild(td);
+      });
+      const open = () => openAdminStudentDetail(student);
+      tr.addEventListener('click', open);
+      tr.addEventListener('keydown', event => {
+        if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); open(); }
       });
       adminStudentsBody.appendChild(tr);
     });
@@ -893,7 +903,245 @@
     });
   }
 
-  // Logo institucional: reacción al movimiento del puntero y al enfoque.
+
+  // Expediente individual imprimible. Todas las consultas son de solo lectura.
+  const adminDetailOverlay = document.querySelector('#admin-student-detail');
+  const adminDetailTitle = document.querySelector('#admin-detail-title');
+  const adminDetailStatus = document.querySelector('#admin-detail-status');
+  const adminDetailContent = document.querySelector('#admin-detail-content');
+  const adminDetailPrint = document.querySelector('#admin-detail-print');
+  let activeAdminStudent = null;
+  let activeAdminDocuments = [];
+  let activeAdminAnswers = [];
+
+  function getProperties(record) {
+    return record && (record.properties || record.propiedades || record) || {};
+  }
+
+  function fieldValue(record, names) {
+    const props = getProperties(record);
+    for (const name of names) {
+      if (props[name] != null) {
+        const value = readNotionProperty(props[name]);
+        if (value) return value;
+      }
+    }
+    return '';
+  }
+
+  function recordId(record) {
+    return record && (record.id || record.ID || record.idNotion || record.page_id) || '';
+  }
+
+  function relationIds(value) {
+    if (!value) return [];
+    if (Array.isArray(value)) return value.map(item => typeof item === 'string' ? item : (item.id || item.page_id || '')).filter(Boolean);
+    if (typeof value === 'string') return [value];
+    if (typeof value === 'object') {
+      const rel = value.relation || value;
+      if (Array.isArray(rel)) return rel.map(item => item.id || item.page_id || '').filter(Boolean);
+      if (rel.id || rel.page_id) return [rel.id || rel.page_id];
+    }
+    return [];
+  }
+
+  function belongsToStudent(record, student) {
+    const id = recordId(student);
+    if (!id) return false;
+    const props = getProperties(record);
+    return Object.entries(props).some(([key, value]) => {
+      if (!/estudiante|alumno|nombrecompleto|ide/i.test(key)) return false;
+      const ids = relationIds(value);
+      return ids.includes(id) || (typeof value === 'string' && value === id);
+    });
+  }
+
+  function detailDisplayValue(value) {
+    const display = readNotionProperty(value);
+    if (display) return display;
+    if (value && typeof value === 'object' && value.files) {
+      return value.files.map(file => file.name || file.external?.url || file.file?.url || '').filter(Boolean).join(', ');
+    }
+    return '';
+  }
+
+  function makeDetailSection(title, rows, pageClass) {
+    const section = document.createElement('section');
+    section.className = 'admin-detail-page ' + (pageClass || '');
+    const heading = document.createElement('h4');
+    heading.textContent = title;
+    section.appendChild(heading);
+    const dl = document.createElement('dl');
+    dl.className = 'admin-detail-fields';
+    rows.forEach(([label, value]) => {
+      const wrap = document.createElement('div');
+      const dt = document.createElement('dt'); dt.textContent = label;
+      const dd = document.createElement('dd'); dd.textContent = value || '—';
+      wrap.append(dt, dd); dl.appendChild(wrap);
+    });
+    section.appendChild(dl);
+    return section;
+  }
+
+  function makeDocumentSection(title, doc, names) {
+    const section = document.createElement('section');
+    section.className = 'admin-detail-page';
+    const heading = document.createElement('h4'); heading.textContent = title; section.appendChild(heading);
+    if (!doc) {
+      const p = document.createElement('p'); p.textContent = 'No se encontró un registro de documento asociado en los datos consultados.'; section.appendChild(p);
+      return section;
+    }
+    const props = getProperties(doc);
+    let found = false;
+    names.forEach(name => {
+      if (props[name] == null) return;
+      found = true;
+      const value = props[name];
+      const line = document.createElement('p');
+      const label = document.createElement('strong'); label.textContent = name + ': ';
+      line.appendChild(label);
+      const files = value && (value.files || (value.type === 'files' && value.files));
+      if (Array.isArray(files) && files.length) {
+        files.forEach((file,index) => {
+          if (index) line.appendChild(document.createTextNode(' · '));
+          const url = file.file?.url || file.external?.url || file.url || '';
+          if (url && /^https:\/\//i.test(url)) {
+            const link = document.createElement('a'); link.href = url; link.target = '_blank'; link.rel = 'noopener'; link.textContent = file.name || 'Abrir documento'; line.appendChild(link);
+          } else line.appendChild(document.createTextNode(file.name || 'Archivo sin enlace disponible'));
+        });
+      } else line.appendChild(document.createTextNode(detailDisplayValue(value) || 'Sin archivo adjunto'));
+      section.appendChild(line);
+    });
+    if (!found) {
+      const p = document.createElement('p'); p.textContent = 'El registro asociado no contiene los campos esperados: ' + names.join(', ') + '.'; section.appendChild(p);
+    }
+    return section;
+  }
+
+  function showDetailStatus(message, error) {
+    if (!adminDetailStatus) return;
+    adminDetailStatus.textContent = message;
+    adminDetailStatus.dataset.state = error ? 'error' : 'neutral';
+  }
+
+  async function adminConsulta(tipo) {
+    const response = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ accion: 'adminConsulta', credential: adminCredential, tipo, limite: 100 }),
+      redirect: 'follow'
+    });
+    const raw = await response.text();
+    let result;
+    try { result = JSON.parse(raw); } catch (_) { throw new Error('La API no devolvió JSON válido al consultar ' + tipo + '.'); }
+    if (!response.ok || result.ok !== true) throw new Error(result.error || result.mensaje || 'El servidor rechazó la consulta ' + tipo + '.');
+    const data = result.datos || result.data || result.registros || result[tipo] || [];
+    return Array.isArray(data) ? data : (Array.isArray(data.registros) ? data.registros : []);
+  }
+
+  function renderAdminStudentDetail(student) {
+    if (!adminDetailContent) return;
+    adminDetailContent.replaceChildren();
+    const studentProps = getProperties(student);
+    const rows = Object.entries(studentProps).map(([name,value]) => [name, detailDisplayValue(value)]).filter(([,value]) => value);
+    adminDetailContent.appendChild(makeDetailSection('Página 1 · Datos del estudiante', rows, 'print-student-page'));
+
+    const matchingDocs = activeAdminDocuments.filter(doc => belongsToStudent(doc, student));
+    const docRecord = matchingDocs.find(doc => {
+      const p = getProperties(doc);
+      return p.CedulaFrente != null || p.CedulaReverso != null || p.CedulaFrente?.files || p.CedulaReverso?.files;
+    }) || matchingDocs[0] || null;
+    adminDetailContent.appendChild(makeDocumentSection('Página 2 · Documentos de identidad', docRecord, ['CedulaFrente','CedulaReverso']));
+    const diplomaRecord = matchingDocs.find(doc => {
+      const p = getProperties(doc);
+      return p.SubirDiploma != null || p.DiplomaDigital != null;
+    }) || docRecord;
+    adminDetailContent.appendChild(makeDocumentSection('Página 3 · Diploma o constancia académica', diplomaRecord, ['SubirDiploma','DiplomaDigital']));
+
+    const answerPage = document.createElement('section');
+    answerPage.className = 'admin-detail-page print-answers-page';
+    const answerHeading = document.createElement('h4'); answerHeading.textContent = 'Página 4 · Preguntas y respuestas de entrevista'; answerPage.appendChild(answerHeading);
+    const matchingAnswers = activeAdminAnswers.filter(answer => belongsToStudent(answer, student));
+    if (!matchingAnswers.length) {
+      const p = document.createElement('p'); p.textContent = 'No se encontraron respuestas relacionadas mediante la relación de estudiante disponible en los registros consultados.'; answerPage.appendChild(p);
+    } else {
+      matchingAnswers.forEach((answer, index) => {
+        const props = getProperties(answer);
+        const question = fieldValue(answer, ['Pregunta','PreguntaTexto','NombrePregunta','Enunciado','Question']) || ('Respuesta ' + (index + 1));
+        const response = fieldValue(answer, ['Respuesta','RespuestaTexto','Contenido','RespuestaEstudiante','Answer']);
+        const block = document.createElement('div'); block.className = 'admin-answer-block';
+        const q = document.createElement('p'); q.className = 'admin-answer-question'; q.textContent = question;
+        const a = document.createElement('p'); a.className = 'admin-answer-text'; a.textContent = response || Object.entries(props).filter(([key]) => /respuesta/i.test(key)).map(([,value]) => detailDisplayValue(value)).filter(Boolean).join(' · ') || 'Respuesta no disponible en los campos devueltos.';
+        block.append(q,a); answerPage.appendChild(block);
+      });
+    }
+    adminDetailContent.appendChild(answerPage);
+  }
+
+  async function openAdminStudentDetail(student) {
+    if (!adminCredential) { setAdminDataStatus('Inicia sesión de nuevo para consultar expedientes.', true); return; }
+    activeAdminStudent = student;
+    activeAdminDocuments = [];
+    activeAdminAnswers = [];
+    if (adminDetailOverlay) adminDetailOverlay.hidden = false;
+    if (adminDetailTitle) adminDetailTitle.textContent = 'Expediente · ' + (studentField(student, 'nombre') || 'Estudiante');
+    if (adminDetailContent) adminDetailContent.replaceChildren();
+    showDetailStatus('Cargando datos, documentos y respuestas…', false);
+    try {
+      const results = await Promise.all([adminConsulta('documentos'), adminConsulta('respuestas')]);
+      activeAdminDocuments = results[0];
+      activeAdminAnswers = results[1];
+      renderAdminStudentDetail(student);
+      showDetailStatus('Expediente preparado. Revisa los documentos y respuestas antes de imprimir.', false);
+    } catch (error) {
+      renderAdminStudentDetail(student);
+      showDetailStatus(error.message || 'No se pudo completar la consulta del expediente.', true);
+    }
+  }
+
+  function closeAdminStudentDetail() {
+    if (adminDetailOverlay) adminDetailOverlay.hidden = true;
+  }
+  const detailClose = document.querySelector('#admin-detail-close');
+  const detailCloseBottom = document.querySelector('#admin-detail-close-bottom');
+  if (detailClose) detailClose.addEventListener('click', closeAdminStudentDetail);
+  if (detailCloseBottom) detailCloseBottom.addEventListener('click', closeAdminStudentDetail);
+  if (adminDetailOverlay) adminDetailOverlay.addEventListener('click', event => {
+    if (event.target === adminDetailOverlay) closeAdminStudentDetail();
+  });
+  if (adminDetailPrint) adminDetailPrint.addEventListener('click', () => {
+    if (!activeAdminStudent || !adminDetailContent) return;
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) { showDetailStatus('El navegador bloqueó la ventana de impresión. Permite ventanas emergentes para este sitio.', true); return; }
+    const printStyles = `<style>
+      @page{size:A4;margin:16mm}
+      body{font:12px Arial,sans-serif;color:#222}
+      h1{font-size:20px;margin:0 0 8px}h2{font-size:17px;margin:0 0 18px}
+      .print-page{page-break-after:always;break-after:page;min-height:250mm}
+      .print-page:last-child{page-break-after:auto;break-after:auto}
+      .fields{width:100%;border-collapse:collapse}.fields td,.fields th{border:1px solid #bbb;padding:7px;text-align:left;vertical-align:top}
+      .fields th{width:32%;background:#f1f1f1}.answer{margin:0 0 18px;break-inside:avoid}
+      a{color:#0645ad;overflow-wrap:anywhere}
+    </style>`;
+    const escapeHtml = value => String(value ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+    const pages = [...adminDetailContent.querySelectorAll('.admin-detail-page')].map((section,index) => {
+      let content = '';
+      if (index === 0) {
+        const rows = [...section.querySelectorAll('.admin-detail-fields > div')].map(row => '<tr><th>' + escapeHtml(row.querySelector('dt')?.textContent) + '</th><td>' + escapeHtml(row.querySelector('dd')?.textContent) + '</td></tr>').join('');
+        content = '<table class="fields">' + rows + '</table>';
+      } else if (index === 1 || index === 2) {
+        content = [...section.querySelectorAll('p')].map(p => '<p>' + [...p.childNodes].map(n => n.nodeType === 3 ? escapeHtml(n.textContent) : n.tagName === 'A' ? '<a href="' + escapeHtml(n.href) + '">' + escapeHtml(n.textContent) + '</a>' : escapeHtml(n.textContent)).join('') + '</p>').join('');
+      } else {
+        content = [...section.querySelectorAll('.admin-answer-block')].map(block => '<div class="answer"><strong>' + escapeHtml(block.querySelector('.admin-answer-question')?.textContent) + '</strong><p>' + escapeHtml(block.querySelector('.admin-answer-text')?.textContent) + '</p></div>').join('') || '<p>' + escapeHtml(section.querySelector('p')?.textContent || '') + '</p>';
+      }
+      return '<section class="print-page"><h1>ITIN CAMPUS</h1><h2>' + escapeHtml(section.querySelector('h4')?.textContent || '') + '</h2>' + content + '</section>';
+    }).join('');
+    printWindow.document.open();
+    printWindow.document.write('<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Expediente - ' + escapeHtml(studentField(activeAdminStudent, 'nombre')) + '</title>' + printStyles + '</head><body>' + pages + '<script>window.onload=()=>window.print();<\/script></body></html>');
+    printWindow.document.close();
+  });
+
+    // Logo institucional: reacción al movimiento del puntero y al enfoque.
   const emblemStage = document.querySelector('.itin-emblem-stage');
   if (emblemStage) {
     const heroLogo = emblemStage.querySelector('.itin-hero-logo');
