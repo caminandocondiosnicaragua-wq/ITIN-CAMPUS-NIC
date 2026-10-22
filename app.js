@@ -965,6 +965,90 @@
     return '';
   }
 
+  const adminProfilePhotoFrame = document.querySelector('#admin-profile-photo-frame');
+  const adminProfilePhotoInput = document.querySelector('#admin-profile-photo-input');
+  const adminProfilePhotoStatus = document.querySelector('#admin-profile-photo-status');
+  let selectedProfilePhotoUrl = '';
+  let selectedProfilePhotoFile = null;
+
+  function notionFiles(value) {
+    if (!value) return [];
+    if (Array.isArray(value)) return value;
+    if (typeof value === 'object') {
+      if (Array.isArray(value.files)) return value.files;
+      if (value.type === 'files' && Array.isArray(value.files)) return value.files;
+      if (value.files && Array.isArray(value.files)) return value.files;
+    }
+    return [];
+  }
+
+  function notionFileUrl(file) {
+    return file && (file.file?.url || file.external?.url || file.url || '') || '';
+  }
+
+  function renderProfilePhoto(student, documents) {
+    if (!adminProfilePhotoFrame) return;
+    adminProfilePhotoFrame.replaceChildren();
+    const studentProps = getProperties(student);
+    let files = [];
+    for (const key of ['Fotoperfil','FotoPerfil','Foto de perfil','Foto','Fotografía']) {
+      files = notionFiles(studentProps[key]);
+      if (files.length) break;
+    }
+    if (!files.length) {
+      for (const doc of documents || []) {
+        if (!belongsToStudent(doc, student)) continue;
+        const props = getProperties(doc);
+        for (const key of ['Fotoperfil','FotoPerfil','Foto de perfil','Foto','Fotografía']) {
+          files = notionFiles(props[key]);
+          if (files.length) break;
+        }
+        if (files.length) break;
+      }
+    }
+    const candidate = files.find(file => notionFileUrl(file)) || null;
+    const url = selectedProfilePhotoUrl || (candidate ? notionFileUrl(candidate) : '');
+    if (url) {
+      const img = document.createElement('img');
+      img.className = 'admin-profile-photo';
+      img.alt = 'Foto de perfil del estudiante';
+      img.src = url;
+      img.referrerPolicy = 'no-referrer';
+      adminProfilePhotoFrame.appendChild(img);
+      if (adminProfilePhotoStatus) adminProfilePhotoStatus.textContent = selectedProfilePhotoFile
+        ? 'Vista previa local. Esta foto todavía no se ha guardado en Notion.'
+        : 'Foto encontrada en el registro del estudiante o sus documentos.';
+    } else {
+      const empty = document.createElement('div');
+      empty.className = 'admin-profile-photo-placeholder';
+      const plus = document.createElement('span'); plus.textContent = '+';
+      const title = document.createElement('strong'); title.textContent = 'Sin foto de perfil';
+      const note = document.createElement('small'); note.textContent = 'Puedes seleccionar una imagen abajo';
+      empty.append(plus,title,note);
+      adminProfilePhotoFrame.appendChild(empty);
+      if (adminProfilePhotoStatus) adminProfilePhotoStatus.textContent = 'No se encontró una foto guardada en los campos Fotoperfil/Fotoperfil de los datos consultados.';
+    }
+  }
+
+  if (adminProfilePhotoInput) adminProfilePhotoInput.addEventListener('change', () => {
+    const file = adminProfilePhotoInput.files && adminProfilePhotoInput.files[0];
+    if (!file) return;
+    if (!['image/jpeg','image/png','image/webp'].includes(file.type)) {
+      if (adminProfilePhotoStatus) adminProfilePhotoStatus.textContent = 'Formato no válido. Selecciona JPG, PNG o WEBP.';
+      adminProfilePhotoInput.value = '';
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      if (adminProfilePhotoStatus) adminProfilePhotoStatus.textContent = 'La imagen no debe superar 5 MB.';
+      adminProfilePhotoInput.value = '';
+      return;
+    }
+    selectedProfilePhotoFile = file;
+    if (selectedProfilePhotoUrl) URL.revokeObjectURL(selectedProfilePhotoUrl);
+    selectedProfilePhotoUrl = URL.createObjectURL(file);
+    renderProfilePhoto(activeAdminStudent, activeAdminDocuments);
+  });
+
   function makeDetailSection(title, rows, pageClass) {
     const section = document.createElement('section');
     section.className = 'admin-detail-page ' + (pageClass || '');
@@ -1092,9 +1176,11 @@
       activeAdminDocuments = results[0];
       activeAdminAnswers = results[1];
       renderAdminStudentDetail(student);
+      renderProfilePhoto(student, activeAdminDocuments);
       showDetailStatus('Expediente preparado. Revisa los documentos y respuestas antes de imprimir.', false);
     } catch (error) {
       renderAdminStudentDetail(student);
+      renderProfilePhoto(student, activeAdminDocuments);
       showDetailStatus(error.message || 'No se pudo completar la consulta del expediente.', true);
     }
   }
