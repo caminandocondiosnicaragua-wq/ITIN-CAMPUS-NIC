@@ -1099,6 +1099,23 @@
     }
   }
 
+  const adminDetailDelete = document.querySelector('#admin-detail-delete');
+  if (adminDetailDelete) adminDetailDelete.addEventListener('click', async () => {
+    if (!activeAdminStudent) {
+      showDetailStatus('No hay un estudiante seleccionado.', true);
+      return;
+    }
+    const studentName = studentField(activeAdminStudent, 'nombre') || 'este estudiante';
+    const confirmation = window.confirm(
+      '¿Estás segura de que deseas eliminar la información de ' + studentName + '?\n\n' +
+      'ADVERTENCIA: la eliminación será EN CASCADA. Se eliminará el registro del estudiante y los documentos y respuestas relacionados mediante su identificador.\n\n' +
+      'Esta acción es para solicitudes de prueba o casos que no serán aprobados. No se puede deshacer.\n\n' +
+      'Pulsa Aceptar únicamente si confirmas que corresponde eliminar este expediente.'
+    );
+    if (!confirmation) return;
+    showDetailStatus('La eliminación todavía no está habilitada en el servidor. No se ha borrado ningún dato.', true);
+  });
+
   const detailRefresh = document.querySelector('#admin-detail-refresh');
   const detailEnroll = document.querySelector('#admin-detail-enroll');
   const detailPayments = document.querySelector('#admin-detail-payments');
