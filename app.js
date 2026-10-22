@@ -1113,34 +1113,83 @@
   function makeDocumentSection(title, doc, names) {
     const section = document.createElement('section');
     section.className = 'admin-detail-page';
-    const heading = document.createElement('h4'); heading.textContent = title; section.appendChild(heading);
+    const heading = document.createElement('h4');
+    heading.textContent = title;
+    section.appendChild(heading);
     if (!doc) {
-      const p = document.createElement('p'); p.textContent = 'No se encontró un registro de documento asociado en los datos consultados.'; section.appendChild(p);
+      const p = document.createElement('p');
+      p.textContent = 'No se encontró un registro de documento asociado en los datos consultados.';
+      section.appendChild(p);
       return section;
     }
+
     const props = getProperties(doc);
     let found = false;
     names.forEach(name => {
       if (props[name] == null) return;
       found = true;
       const value = props[name];
-      const line = document.createElement('p');
-      const label = document.createElement('strong'); label.textContent = name + ': ';
-      line.appendChild(label);
-      const files = value && (value.files || (value.type === 'files' && value.files));
+      const files = value && value.files;
+      const label = document.createElement('h5');
+      label.className = 'admin-document-label';
+      label.textContent = name === 'CedulaFrente' ? 'Cédula · frente' :
+        name === 'CedulaReverso' ? 'Cédula · reverso' :
+        name === 'Fotoperfil' ? 'Fotografía de perfil' :
+        name === 'SubirDiploma' ? 'Diploma o constancia académica' : name;
+      section.appendChild(label);
+
       if (Array.isArray(files) && files.length) {
-        files.forEach((file,index) => {
-          if (index) line.appendChild(document.createTextNode(' · '));
-          const url = file.file?.url || file.external?.url || file.url || '';
-          if (url && /^https:\/\//i.test(url)) {
-            const link = document.createElement('a'); link.href = url; link.target = '_blank'; link.rel = 'noopener'; link.textContent = file.name || 'Abrir documento'; line.appendChild(link);
-          } else line.appendChild(document.createTextNode(file.name || 'Archivo sin enlace disponible'));
+        const gallery = document.createElement('div');
+        gallery.className = 'admin-document-gallery';
+        files.forEach(file => {
+          const url = file && (file.file?.url || file.external?.url || file.url) || '';
+          const fileName = file && file.name || 'Documento adjunto';
+          const isImage = /\.(png|jpe?g|webp|gif)(?:$|[?#])/i.test(fileName) ||
+            /^image\/(png|jpeg|webp|gif)$/i.test(file && file.type || '');
+          if (url && /^https:\/\//i.test(url) && isImage) {
+            const figure = document.createElement('figure');
+            figure.className = 'admin-document-figure';
+            const image = document.createElement('img');
+            image.src = url;
+            image.alt = label.textContent;
+            image.loading = 'eager';
+            image.addEventListener('error', () => {
+              figure.classList.add('admin-document-image-error');
+              image.remove();
+              const errorText = document.createElement('p');
+              errorText.textContent = 'No se pudo mostrar la imagen. Abre el archivo para comprobar el acceso.';
+              figure.appendChild(errorText);
+            }, { once: true });
+            figure.appendChild(image);
+            const caption = document.createElement('figcaption');
+            caption.textContent = fileName;
+            figure.appendChild(caption);
+            gallery.appendChild(figure);
+          } else if (url && /^https:\/\//i.test(url)) {
+            const link = document.createElement('a');
+            link.href = url;
+            link.target = '_blank';
+            link.rel = 'noopener';
+            link.textContent = 'Abrir ' + fileName;
+            link.className = 'admin-document-file-link';
+            gallery.appendChild(link);
+          } else {
+            const unavailable = document.createElement('p');
+            unavailable.textContent = fileName + ' (enlace no disponible)';
+            gallery.appendChild(unavailable);
+          }
         });
-      } else line.appendChild(document.createTextNode(detailDisplayValue(value) || 'Sin archivo adjunto'));
-      section.appendChild(line);
+        section.appendChild(gallery);
+      } else {
+        const line = document.createElement('p');
+        line.textContent = detailDisplayValue(value) || 'Sin archivo adjunto';
+        section.appendChild(line);
+      }
     });
     if (!found) {
-      const p = document.createElement('p'); p.textContent = 'El registro asociado no contiene los campos esperados: ' + names.join(', ') + '.'; section.appendChild(p);
+      const p = document.createElement('p');
+      p.textContent = 'El registro asociado no contiene los campos esperados: ' + names.join(', ') + '.';
+      section.appendChild(p);
     }
     return section;
   }
