@@ -913,6 +913,7 @@
   let activeAdminStudent = null;
   let activeAdminDocuments = [];
   let activeAdminAnswers = [];
+  let activeAdminQuestions = [];
 
   function getProperties(record) {
     return record && (record.properties || record.propiedades || record) || {};
@@ -1127,8 +1128,22 @@
     if (!adminDetailContent) return;
     adminDetailContent.replaceChildren();
     const studentProps = getProperties(student);
-    const rows = Object.entries(studentProps).map(([name,value]) => [name, detailDisplayValue(value)]).filter(([,value]) => value);
-    adminDetailContent.appendChild(makeDetailSection('Página 1 · Datos del estudiante', rows, 'print-student-page'));
+    const studentFieldOrder = [
+      'NombreCompleto','Nombre completo','Nombre','Cedula','Cédula','FechaNac','Fecha de nacimiento','Edad',
+      'Correo','Celular','Departamento','Municipio','Dirección','Direccion','EstadoCivil','Estado civil',
+      'Profesión','Profesion','Escolaridad','GradoAprobado','Cargo','Asociación','Asociacion',
+      'NombrePastor','Iglesia','Programa','FechaEntrevista','Estado','Observaciones'
+    ];
+    const orderedNames = [];
+    studentFieldOrder.forEach(name => {
+      const actual = Object.keys(studentProps).find(key => key.toLocaleLowerCase() === name.toLocaleLowerCase());
+      if (actual && !orderedNames.includes(actual)) orderedNames.push(actual);
+    });
+    Object.keys(studentProps).forEach(name => { if (!orderedNames.includes(name)) orderedNames.push(name); });
+    const rows = orderedNames.map(name => [name, detailDisplayValue(studentProps[name])]).filter(([,value]) => value);
+    const programName = fieldValue(student, ['Programa','Programa solicitado','ProgramaAcademico','Carrera']);
+    if (programName) rows.unshift(['Programa solicitado', programName]);
+    adminDetailContent.appendChild(makeDetailSection('Página 1 · Datos del estudiante e información de la iglesia', rows, 'print-student-page'));
 
     const matchingDocs = activeAdminDocuments.filter(doc => belongsToStudent(doc, student));
     const docRecord = matchingDocs.find(doc => {
@@ -1144,18 +1159,52 @@
 
     const answerPage = document.createElement('section');
     answerPage.className = 'admin-detail-page print-answers-page';
-    const answerHeading = document.createElement('h4'); answerHeading.textContent = 'Página 4 · Preguntas y respuestas de entrevista'; answerPage.appendChild(answerHeading);
+    const programForAnswers = fieldValue(student, ['Programa','Programa solicitado','ProgramaAcademico','Carrera']) ||
+      activeAdminAnswers.map(answer => fieldValue(answer, ['Programa','Programa solicitado','ProgramaAcademico','Carrera'])).find(Boolean) || 'No indicado en los datos devueltos';
+    const answerHeading = document.createElement('h4');
+    answerHeading.textContent = 'Página 4 · Preguntas y respuestas de entrevista';
+    answerPage.appendChild(answerHeading);
+    const programLine = document.createElement('p');
+    programLine.className = 'admin-answer-program';
+    programLine.textContent = 'Programa: ' + programForAnswers;
+    answerPage.appendChild(programLine);
+    const questionIndex = new Map();
+    activeAdminQuestions.forEach((question, index) => {
+      const props = getProperties(question);
+      const id = recordId(question);
+      const title = fieldValue(question, ['Pregunta','PreguntaTexto','NombrePregunta','Enunciado','Question','TextoPregunta','TituloPregunta','Nombre']);
+      if (id && title) questionIndex.set(id, { title, props, index });
+    });
     const matchingAnswers = activeAdminAnswers.filter(answer => belongsToStudent(answer, student));
-    if (!matchingAnswers.length) {
-      const p = document.createElement('p'); p.textContent = 'No se encontraron respuestas relacionadas mediante la relación de estudiante disponible en los registros consultados.'; answerPage.appendChild(p);
+    const answerItems = matchingAnswers.map((answer, index) => {
+      const props = getProperties(answer);
+      const questionValue = props.IdPreg_entrevista || props.IdPregEntrevista || props.PreguntaRelacionada || props.PreguntaID || props.Preguntas || props.Pregunta;
+      const relationIdsList = relationIds(questionValue);
+      let relatedQuestion = null;
+      for (const id of relationIdsList) { if (questionIndex.has(id)) { relatedQuestion = questionIndex.get(id); break; } }
+      const directQuestion = fieldValue(answer, ['PreguntaTexto','NombrePregunta','Enunciado','Question','TextoPregunta','TituloPregunta']);
+      const questionNumberValue = fieldValue(answer, ['Orden','OrdenPregunta','NumeroPregunta','NroPregunta','NumPregunta','Numero','Número']);
+      const questionNumber = Number(questionNumberValue);
+      return {
+        answer, props, index,
+        question: directQuestion || (relatedQuestion && relatedQuestion.title) || '',
+        questionNumber: Number.isFinite(questionNumber) && questionNumber > 0 ? questionNumber : (relatedQuestion ? relatedQuestion.index + 1 : index + 1),
+        response: fieldValue(answer, ['Respuesta','RespuestaTexto','Contenido','RespuestaEstudiante','Answer','RespuestaAbierta']) ||
+          Object.entries(props).filter(([key]) => /respuesta/i.test(key)).map(([,value]) => detailDisplayValue(value)).filter(Boolean).join(' · ')
+      };
+    });
+    answerItems.sort((a,b) => a.questionNumber - b.questionNumber || a.index - b.index);
+    if (!answerItems.length) {
+      const p = document.createElement('p');
+      p.textContent = 'No se encontraron respuestas relacionadas con este estudiante.';
+      answerPage.appendChild(p);
     } else {
-      matchingAnswers.forEach((answer, index) => {
-        const props = getProperties(answer);
-        const question = fieldValue(answer, ['Pregunta','PreguntaTexto','NombrePregunta','Enunciado','Question']) || ('Respuesta ' + (index + 1));
-        const response = fieldValue(answer, ['Respuesta','RespuestaTexto','Contenido','RespuestaEstudiante','Answer']);
+      answerItems.forEach((item, index) => {
         const block = document.createElement('div'); block.className = 'admin-answer-block';
-        const q = document.createElement('p'); q.className = 'admin-answer-question'; q.textContent = question;
-        const a = document.createElement('p'); a.className = 'admin-answer-text'; a.textContent = response || Object.entries(props).filter(([key]) => /respuesta/i.test(key)).map(([,value]) => detailDisplayValue(value)).filter(Boolean).join(' · ') || 'Respuesta no disponible en los campos devueltos.';
+        const q = document.createElement('p'); q.className = 'admin-answer-question';
+        q.textContent = 'Pregunta ' + item.questionNumber + ': ' + (item.question || 'No se pudo resolver el texto de la pregunta relacionada.');
+        const a = document.createElement('p'); a.className = 'admin-answer-text';
+        a.textContent = item.response || 'Respuesta no disponible en los campos devueltos.';
         block.append(q,a); answerPage.appendChild(block);
       });
     }
@@ -1175,6 +1224,26 @@
       const results = await Promise.all([adminConsulta('documentos'), adminConsulta('respuestas')]);
       activeAdminDocuments = results[0];
       activeAdminAnswers = results[1];
+      activeAdminQuestions = [];
+      const requestedProgram = fieldValue(student, ['Programa','Programa solicitado','ProgramaAcademico','Carrera']);
+      if (requestedProgram) {
+        try {
+          const qResponse = await fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify({ accion: 'preguntas', programa: requestedProgram }),
+            redirect: 'follow'
+          });
+          const qText = await qResponse.text();
+          const qResult = JSON.parse(qText);
+          if (qResponse.ok && qResult.ok !== false) {
+            const qData = qResult.preguntas || qResult.datos || qResult.data || qResult.registros || [];
+            activeAdminQuestions = Array.isArray(qData) ? qData : [];
+          }
+        } catch (questionError) {
+          console.warn('No se pudieron resolver los textos de preguntas del programa:', questionError);
+        }
+      }
       renderAdminStudentDetail(student);
       renderProfilePhoto(student, activeAdminDocuments);
       showDetailStatus('Expediente preparado. Revisa los documentos y respuestas antes de imprimir.', false);
