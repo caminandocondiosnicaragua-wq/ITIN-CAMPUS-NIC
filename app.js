@@ -1505,7 +1505,7 @@
       adminDetailDelete.disabled = true;
       await loadAdminStudents();
     } catch (error) { showDetailStatus(error.message || 'No se pudo archivar el registro.', true); }
-  });;
+  });
 
   const detailRefresh = document.querySelector('#admin-detail-refresh');
   const detailEnroll = document.querySelector('#admin-detail-enroll');
