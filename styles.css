@@ -509,7 +509,9 @@ button, .button {
 .admin-detail-dialog{scroll-padding-top:170px}
 .admin-detail-heading{min-height:76px}
 .admin-detail-actions{min-height:74px;box-sizing:border-box;align-items:center;padding:12px 0;background:#fffdf9}
-#admin-detail-save{display:none!important}
+#admin-detail-save{display:flex!important}
+#admin-detail-cancel[hidden]{display:none!important}
+.admin-edit-actions{display:none!important}
 .admin-document-upload-row{display:grid;grid-template-columns:minmax(150px,220px) minmax(0,1fr);align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line);font-size:14px}
 .admin-document-existing-files{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
 .admin-document-existing-files a{overflow-wrap:anywhere}
@@ -527,3 +529,12 @@ button, .button {
 .admin-document-preview-link{display:flex;flex-direction:column;align-items:flex-start;gap:6px;max-width:280px;overflow-wrap:anywhere}
 .admin-document-preview-image{display:block;width:auto;max-width:260px;height:auto;max-height:190px;object-fit:contain;border:1px solid var(--line,#d8cfbd);border-radius:8px;background:#fff;padding:4px}
 .admin-document-preview-image.is-unavailable{display:none}
+
+/* Barra de expediente: guardar y cancelar desde los iconos superiores */
+#admin-detail-save{display:flex!important}
+#admin-detail-cancel[hidden]{display:none!important}
+.admin-edit-actions{display:none!important}
+.admin-detail-dialog:not(.is-editing) .admin-document-upload-section{display:none!important}
+.admin-detail-dialog.is-editing .admin-document-upload-section{display:block}
+.admin-detail-dialog:not(.is-editing) .admin-profile-photo-controls{display:none!important}
+.admin-detail-dialog.is-editing .admin-profile-photo-controls{display:block}
