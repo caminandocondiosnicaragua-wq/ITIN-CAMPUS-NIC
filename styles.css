@@ -827,3 +827,11 @@ button, .button {
   .home-page .campus-slide-copy > p:not(.campus-slide-kicker) { font-size: 12px; line-height: 1.5; }
   .home-page .campus-slide-cta { font-size: 10px; padding: 9px 12px; }
 }
+
+
+/* Colores suaves por módulo del panel administrativo; conserva transiciones y acciones. */
+.admin-card-grid .admin-module-card:nth-child(1){background:#f1f5ff;border-color:#cbd8f0}.admin-card-grid .admin-module-card:nth-child(1) .admin-module-icon{background:#dbe6ff;color:#294c8d}.admin-card-grid .admin-module-card:nth-child(1) .admin-module-number,.admin-card-grid .admin-module-card:nth-child(1) .admin-module-link{color:#294c8d}
+.admin-card-grid .admin-module-card:nth-child(2){background:#edf8f0;border-color:#c5e3ce}.admin-card-grid .admin-module-card:nth-child(2) .admin-module-icon{background:#d5efdc;color:#286a40}.admin-card-grid .admin-module-card:nth-child(2) .admin-module-number,.admin-card-grid .admin-module-card:nth-child(2) .admin-module-link{color:#286a40}
+.admin-card-grid .admin-module-card:nth-child(3){background:#fff4e8;border-color:#efd4b5}.admin-card-grid .admin-module-card:nth-child(3) .admin-module-icon{background:#ffe3c6;color:#93521d}.admin-card-grid .admin-module-card:nth-child(3) .admin-module-number,.admin-card-grid .admin-module-card:nth-child(3) .admin-module-link{color:#93521d}
+.admin-card-grid .admin-module-card:nth-child(4){background:#f5efff;border-color:#d9c9f0}.admin-card-grid .admin-module-card:nth-child(4) .admin-module-icon{background:#e7d9ff;color:#68419a}.admin-card-grid .admin-module-card:nth-child(4) .admin-module-number,.admin-card-grid .admin-module-card:nth-child(4) .admin-module-link{color:#68419a}
+.admin-card-grid .admin-module-card:nth-child(1):hover,.admin-card-grid .admin-module-card:nth-child(1):focus-visible{background:#e8efff;border-color:#9eb7e8}.admin-card-grid .admin-module-card:nth-child(2):hover,.admin-card-grid .admin-module-card:nth-child(2):focus-visible{background:#e2f3e7;border-color:#95cda5}.admin-card-grid .admin-module-card:nth-child(3):hover,.admin-card-grid .admin-module-card:nth-child(3):focus-visible{background:#ffecd8;border-color:#e4b984}.admin-card-grid .admin-module-card:nth-child(4):hover,.admin-card-grid .admin-module-card:nth-child(4):focus-visible{background:#eee4ff;border-color:#bca2e6}
