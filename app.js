@@ -857,26 +857,21 @@
     setAdminDataStatus('Registros recibidos: ' + adminStudents.length + '. Coincidencias: ' + visible.length + '.', false);
   }
 
-  async function loadAdminStudents() {
+  async function loadAdminStudents(forceRefresh) {
     if (!adminCredential) {
       setAdminDataStatus('Tu sesión no tiene una credencial activa. Cierra sesión e inicia de nuevo.', true);
+      return;
+    }
+    if (!forceRefresh && adminStudents.length) {
+      renderAdminStudents();
+      setAdminDataStatus('Mostrando datos guardados en esta sesión. Usa Recargar solo cuando necesites consultar cambios externos.', false);
       return;
     }
     if (adminRefreshStudents) adminRefreshStudents.disabled = true;
     setAdminDataStatus('Consultando estudiantes autorizados…', false);
     try {
-      const response = await fetch(API_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ accion: 'adminConsulta', credential: adminCredential, tipo: 'estudiantes', limite: 100 }),
-        redirect: 'follow'
-      });
-      const raw = await response.text();
-      let result;
-      try { result = JSON.parse(raw); } catch (_) { throw new Error('La API no devolvió JSON válido.'); }
-      if (!response.ok || result.ok !== true) throw new Error(result.error || result.mensaje || 'El servidor rechazó la consulta.');
-      const data = result.datos || result.data || result.registros || result.estudiantes || [];
-      adminStudents = Array.isArray(data) ? data : (Array.isArray(data.registros) ? data.registros : []);
+      const data = await adminConsulta('estudiantes', !!forceRefresh);
+      adminStudents = data;
       renderAdminStudents();
       setAdminDataStatus('Consulta completada. Registros recibidos: ' + adminStudents.length + '.', false);
     } catch (error) {
@@ -890,7 +885,7 @@
   }
 
   if (adminStudentSearch) adminStudentSearch.addEventListener('input', renderAdminStudents);
-  if (adminRefreshStudents) adminRefreshStudents.addEventListener('click', loadAdminStudents);
+  if (adminRefreshStudents) adminRefreshStudents.addEventListener('click', () => loadAdminStudents(true));
 
   adminModuleCards.forEach((card) => {
     card.addEventListener('click', () => {
@@ -1234,19 +1229,39 @@
     adminDetailStatus.dataset.state = error ? 'error' : 'neutral';
   }
 
-  async function adminConsulta(tipo) {
-    const response = await fetch(API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({ accion: 'adminConsulta', credential: adminCredential, tipo, limite: 100 }),
-      redirect: 'follow'
-    });
-    const raw = await response.text();
-    let result;
-    try { result = JSON.parse(raw); } catch (_) { throw new Error('La API no devolvió JSON válido al consultar ' + tipo + '.'); }
-    if (!response.ok || result.ok !== true) throw new Error(result.error || result.mensaje || 'El servidor rechazó la consulta ' + tipo + '.');
-    const data = result.datos || result.data || result.registros || result[tipo] || [];
-    return Array.isArray(data) ? data : (Array.isArray(data.registros) ? data.registros : []);
+  // Caché en memoria durante la sesión administrativa. Solo se invalida tras guardar cambios.
+  const adminReadCache = new Map();
+  function invalidateAdminReadCache(...keys) {
+    keys.forEach(key => adminReadCache.delete(key));
+  }
+  function cachedAdminRead(key, loader) {
+    if (!adminReadCache.has(key)) {
+      const pending = Promise.resolve().then(loader).catch(error => {
+        adminReadCache.delete(key);
+        throw error;
+      });
+      adminReadCache.set(key, pending);
+    }
+    return adminReadCache.get(key);
+  }
+
+  async function adminConsulta(tipo, forceRefresh) {
+    const loader = async () => {
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ accion: 'adminConsulta', credential: adminCredential, tipo, limite: 100 }),
+        redirect: 'follow'
+      });
+      const raw = await response.text();
+      let result;
+      try { result = JSON.parse(raw); } catch (_) { throw new Error('La API no devolvió JSON válido al consultar ' + tipo + '.'); }
+      if (!response.ok || result.ok !== true) throw new Error(result.error || result.mensaje || 'El servidor rechazó la consulta ' + tipo + '.');
+      const data = result.datos || result.data || result.registros || result[tipo] || [];
+      return Array.isArray(data) ? data : (Array.isArray(data.registros) ? data.registros : []);
+    };
+    if (forceRefresh) invalidateAdminReadCache(tipo);
+    return cachedAdminRead(tipo, loader);
   }
 
   function renderAdminStudentDetail(student) {
@@ -1363,46 +1378,38 @@
   async function openAdminStudentDetail(student) {
     if (!adminCredential) { setAdminDataStatus('Inicia sesión de nuevo para consultar expedientes.', true); return; }
     activeAdminStudent = student;
-    activeAdminDocuments = [];
-    activeAdminAnswers = [];
     if (adminDetailOverlay) adminDetailOverlay.hidden = false;
     if (adminDetailTitle) adminDetailTitle.textContent = 'Expediente · ' + (studentField(student, 'nombre') || 'Estudiante');
     if (adminDetailContent) adminDetailContent.replaceChildren();
-    showDetailStatus('Cargando datos, documentos y respuestas…', false);
+    showDetailStatus('Consultando datos guardados…', false);
     try {
-      const results = await Promise.all([adminConsulta('documentos'), adminConsulta('respuestas')]);
-      activeAdminDocuments = results[0];
-      activeAdminAnswers = results[1];
-      activeAdminQuestions = [];
-      // No dependemos de que ESTUDIANTE tenga Programa: la tabla no lo expone
-      // de forma fiable. Cargamos las preguntas de los programas y resolvemos
-      // cada respuesta mediante su relación IdPreg_entrevista (ID de Notion o Bach001/Lic0001).
-      const requestedProgram = fieldValue(student, ['Programa','Programa solicitado','ProgramaAcademico','Carrera']) || inferProgramFromAnswers(activeAdminAnswers, student);
+      const [documents, answers] = await Promise.all([
+        adminConsulta('documentos'),
+        adminConsulta('respuestas')
+      ]);
+      activeAdminDocuments = documents;
+      activeAdminAnswers = answers;
+      const requestedProgram = fieldValue(student, ['Programa','Programa solicitado','ProgramaAcademico','Carrera']) || inferProgramFromAnswers(answers, student);
       const programCandidates = requestedProgram
         ? [requestedProgram, 'Bachillerato', 'Licenciatura', 'Maestría']
         : ['Bachillerato', 'Licenciatura', 'Maestría'];
       const uniquePrograms = [...new Set(programCandidates)];
-      const questionResults = await Promise.all(uniquePrograms.map(async programa => {
-        try {
-          const qResponse = await fetch(API_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-            body: JSON.stringify({ accion: 'preguntas', programa }),
-            redirect: 'follow'
-          });
-          const qText = await qResponse.text();
-          const qResult = JSON.parse(qText);
-          if (!qResponse.ok || qResult.ok === false) return [];
-          const qData = qResult.preguntas || qResult.datos || qResult.data || qResult.registros || [];
-          return Array.isArray(qData) ? qData : (Array.isArray(qData.registros) ? qData.registros : []);
-        } catch (questionError) {
-          console.warn('No se pudieron cargar preguntas de ' + programa + ':', questionError);
-          return [];
-        }
-      }));
+      const questionLists = await Promise.all(uniquePrograms.map(programa => cachedAdminRead('preguntas:' + programa, async () => {
+        const response = await fetch(API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ accion: 'preguntas', programa }),
+          redirect: 'follow'
+        });
+        const raw = await response.text();
+        let result;
+        try { result = JSON.parse(raw); } catch (_) { throw new Error('La API no devolvió JSON válido al consultar preguntas.'); }
+        if (!response.ok || result.ok === false) throw new Error(result.error || result.mensaje || 'No se pudieron cargar las preguntas.');
+        const data = result.preguntas || result.datos || result.data || result.registros || [];
+        return Array.isArray(data) ? data : (Array.isArray(data.registros) ? data.registros : []);
+      })));
       const questionsById = new Map();
-      questionResults.flat().forEach(question => {
-        const props = getProperties(question);
+      questionLists.flat().forEach(question => {
         const identifiers = [
           recordId(question),
           fieldValue(question, ['IdPreg_entrevista','IdPregEntrevista','IdPregunta','Código','Codigo'])
@@ -1412,25 +1419,12 @@
       activeAdminQuestions = [...questionsById.values()];
       renderAdminStudentDetail(student);
       renderProfilePhoto(student, activeAdminDocuments);
-      showDetailStatus('Expediente preparado. Revisa los documentos y respuestas antes de imprimir.', false);
+      showDetailStatus('Expediente listo. Los datos se conservan en caché durante esta sesión.', false);
     } catch (error) {
-      renderAdminStudentDetail(student);
-      renderProfilePhoto(student, activeAdminDocuments);
-      showDetailStatus(error.message || 'No se pudo completar la consulta del expediente.', true);
+      showDetailStatus(error.message || 'No se pudo preparar el expediente.', true);
     }
   }
 
-
-  // Acciones administrativas con respuesta visible y validación en servidor.
-  async function callAdminAction(payload) {
-    if (!adminCredential) throw new Error('La sesión administrativa expiró. Inicia sesión de nuevo.');
-    const response = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ ...payload, credential: adminCredential }), redirect: 'follow' });
-    const raw = await response.text();
-    let result;
-    try { result = JSON.parse(raw); } catch (_) { throw new Error('La API no devolvió JSON válido. No se puede confirmar la operación.'); }
-    if (!response.ok || result.ok !== true) throw new Error(result.error || result.mensaje || 'La API no confirmó la operación.');
-    return result;
-  }
 
   const adminDetailEdit = document.querySelector('#admin-detail-edit');
   if (adminDetailEdit) adminDetailEdit.addEventListener('click', () => {
@@ -1505,7 +1499,11 @@
     try {
       const result = await callAdminAction({ accion: nextActive ? 'adminActivarRegistro' : 'adminDesactivarRegistro', base: 'ESTUDIANTE', id });
       showDetailStatus(result.mensaje || 'Estado actualizado.', false);
-      await loadAdminStudents(); await openAdminStudentDetail(activeAdminStudent);
+      invalidateAdminReadCache('estudiantes', 'documentos', 'respuestas');
+      const studentId = recordId(activeAdminStudent);
+      await loadAdminStudents();
+      const refreshed = adminStudents.find(item => recordId(item) === studentId) || activeAdminStudent;
+      await openAdminStudentDetail(refreshed);
     } catch (error) { showDetailStatus(error.message || 'No se pudo cambiar el estado.', true); }
   });
 
@@ -1529,6 +1527,7 @@
       try {
         const result = await callAdminAction({ accion: 'adminReemplazarDocumento', id: recordId(doc), campo: field.trim(), archivo: { nombre: selected.name, tipo: selected.type, base64: await fileToBase64(selected) } });
         showDetailStatus(result.mensaje || 'Documento reemplazado en Notion.', false);
+        invalidateAdminReadCache('documentos');
         await openAdminStudentDetail(activeAdminStudent);
       } catch (error) { showDetailStatus(error.message || 'No se pudo reemplazar el documento.', true); }
     };
@@ -1547,6 +1546,7 @@
       const result = await callAdminAction({ accion: 'adminEliminarRegistro', base: 'ESTUDIANTE', id: recordId(activeAdminStudent), confirmar: true, motivo: motivo.trim() });
       showDetailStatus(result.mensaje || 'Registro archivado. No se borró permanentemente.', false);
       adminDetailDelete.disabled = true;
+      invalidateAdminReadCache('estudiantes', 'documentos', 'respuestas');
       await loadAdminStudents();
     } catch (error) { showDetailStatus(error.message || 'No se pudo archivar el registro.', true); }
   });
@@ -1555,7 +1555,10 @@
   const detailEnroll = document.querySelector('#admin-detail-enroll');
   const detailPayments = document.querySelector('#admin-detail-payments');
   if (detailRefresh) detailRefresh.addEventListener('click', () => {
-    if (activeAdminStudent) openAdminStudentDetail(activeAdminStudent);
+    if (activeAdminStudent) {
+      // Este botón ya no recarga Notion: activa el modo de edición en línea.
+      if (adminDetailEdit) adminDetailEdit.click();
+    }
   });
   function openAdminModuleShortcut(moduleKey) {
     closeAdminStudentDetail();
