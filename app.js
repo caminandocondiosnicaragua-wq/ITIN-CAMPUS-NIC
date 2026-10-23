@@ -1134,8 +1134,10 @@
     dl.className = 'admin-detail-fields';
     rows.forEach(([label, value]) => {
       const wrap = document.createElement('div');
+      wrap.dataset.property = label;
       const dt = document.createElement('dt'); dt.textContent = label;
       const dd = document.createElement('dd'); dd.textContent = value || '—';
+      dd.dataset.value = value || '';
       wrap.append(dt, dd); dl.appendChild(wrap);
     });
     section.appendChild(dl);
@@ -1431,22 +1433,64 @@
   }
 
   const adminDetailEdit = document.querySelector('#admin-detail-edit');
-  if (adminDetailEdit) adminDetailEdit.addEventListener('click', async () => {
+  if (adminDetailEdit) adminDetailEdit.addEventListener('click', () => {
     if (!activeAdminStudent) return showDetailStatus('Selecciona primero un expediente.', true);
-    const editableFields = ['NombreCompleto','Cedula','FechaNac','Edad','Correo','Celular','Departamento','Municipio','Dirección','EstadoCivil','Profesión','Escolaridad','GradoAprobado','Cargo','Asociación','NombrePastor','Iglesia','Programa','FechaEntrevista'];
-    const field = window.prompt('Escribe el nombre exacto de una propiedad editable:\n\n' + editableFields.join(', '));
-    if (!field) return;
-    if (!editableFields.includes(field.trim())) return showDetailStatus('Propiedad no permitida. No se realizó ningún cambio.', true);
-    const current = detailDisplayValue(getProperties(activeAdminStudent)[field.trim()]);
-    const value = window.prompt('Nuevo valor para "' + field.trim() + '":', current);
-    if (value === null || value.trim() === current) return;
-    if (!window.confirm('¿Guardar el cambio de "' + field.trim() + '" en Notion?')) return;
-    showDetailStatus('Guardando cambio…', false);
-    try {
-      const result = await callAdminAction({ accion: 'adminActualizarRegistro', base: 'ESTUDIANTE', id: recordId(activeAdminStudent), propiedades: { [field.trim()]: value.trim() } });
-      showDetailStatus(result.mensaje || 'Dato actualizado correctamente.', false);
-      await loadAdminStudents(); await openAdminStudentDetail(activeAdminStudent);
-    } catch (error) { showDetailStatus(error.message || 'No se pudo actualizar el dato.', true); }
+    const editableFields = ['NombreCompleto','Cedula','FechaNac','Edad','Correo','Celular','Departamento','Municipio','Dirección','Direccion','EstadoCivil','Profesión','Profesion','Escolaridad','GradoAprobado','Cargo','Asociación','Asociacion','NombrePastor','Iglesia','Programa','FechaEntrevista'];
+    const content = document.querySelector('#admin-detail-content');
+    if (!content) return;
+    const existing = content.querySelector('.admin-edit-actions');
+    if (existing) return;
+    let changed = 0;
+    content.querySelectorAll('.admin-detail-fields > div').forEach(wrap => {
+      const field = wrap.dataset.property;
+      if (!editableFields.includes(field)) return;
+      const dd = wrap.querySelector('dd');
+      if (!dd || dd.querySelector('input')) return;
+      const input = document.createElement('input');
+      input.type = /fecha/i.test(field) ? 'date' : 'text';
+      input.className = 'admin-inline-edit-input';
+      input.dataset.field = field;
+      input.value = dd.dataset.value || '';
+      input.setAttribute('aria-label', field);
+      dd.replaceChildren(input);
+      changed++;
+    });
+    if (!changed) return showDetailStatus('No se encontraron campos editables en este expediente.', true);
+    const actions = document.createElement('div');
+    actions.className = 'admin-edit-actions';
+    const save = document.createElement('button');
+    save.type = 'button'; save.className = 'button button-primary'; save.textContent = 'Guardar cambios';
+    const cancel = document.createElement('button');
+    cancel.type = 'button'; cancel.className = 'button button-quiet'; cancel.textContent = 'Cancelar edición';
+    actions.append(save, cancel);
+    content.prepend(actions);
+    adminDetailEdit.disabled = true;
+    showDetailStatus('Modo de edición activo. Modifica los campos y guarda cuando termines.', false);
+    cancel.addEventListener('click', () => openAdminStudentDetail(activeAdminStudent));
+    save.addEventListener('click', async () => {
+      const propiedades = {};
+      actions.parentElement.querySelectorAll('.admin-inline-edit-input').forEach(input => {
+        const original = input.closest('dd').dataset.value || '';
+        if (input.value.trim() !== original) propiedades[input.dataset.field] = input.value.trim();
+      });
+      if (!Object.keys(propiedades).length) {
+        showDetailStatus('No hay cambios que guardar.', false);
+        return;
+      }
+      if (!window.confirm('Se actualizarán ' + Object.keys(propiedades).length + ' campo(s) de este expediente en Notion. ¿Continuar?')) return;
+      save.disabled = true; cancel.disabled = true;
+      showDetailStatus('Guardando cambios…', false);
+      try {
+        const result = await callAdminAction({ accion: 'adminActualizarRegistro', base: 'ESTUDIANTE', id: recordId(activeAdminStudent), propiedades });
+        showDetailStatus(result.mensaje || 'Cambios guardados correctamente.', false);
+        await loadAdminStudents();
+        const refreshed = adminStudents.find(item => recordId(item) === recordId(activeAdminStudent)) || activeAdminStudent;
+        await openAdminStudentDetail(refreshed);
+      } catch (error) {
+        save.disabled = false; cancel.disabled = false;
+        showDetailStatus(error.message || 'No se pudieron guardar los cambios.', true);
+      }
+    });
   });
 
   const adminDetailToggleStatus = document.querySelector('#admin-detail-toggle-status');
