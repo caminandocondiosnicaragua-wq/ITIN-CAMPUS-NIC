@@ -86,7 +86,13 @@
   }
   window.addEventListener('hashchange', readHash);
   navLinks.forEach(link => link.addEventListener('click', () => {
-    if (link.dataset.page === 'solicitud') updateStep();
+    if (link.dataset.page === 'solicitud') {
+      // Cada entrada desde el menú comienza en el selector de programas.
+      // El formulario solo se muestra después de elegir una tarjeta.
+      programSelect.value = '';
+      updateInterviewForProgram();
+      updateApplicationEntry();
+    }
   }));
   document.querySelectorAll('[data-program]').forEach(link => link.addEventListener('click', () => {
     programSelect.value = link.dataset.program;
