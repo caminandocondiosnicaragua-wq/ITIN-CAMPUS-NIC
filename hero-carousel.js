@@ -7,11 +7,9 @@
   const indicators = Array.from(carousel.querySelectorAll('.campus-carousel-indicators button'));
   const previous = carousel.querySelector('.campus-carousel-prev');
   const next = carousel.querySelector('.campus-carousel-next');
-  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   const intervalMs = 6500;
   let activeIndex = 0;
   let timer = null;
-  let resumeTimer = null;
 
   function showSlide(index) {
     activeIndex = (index + slides.length) % slides.length;
@@ -41,7 +39,7 @@
 
   function startTimer() {
     stopTimer();
-    if (reducedMotion.matches || document.hidden || carousel.matches(':hover, :focus-within')) return;
+    if (document.hidden || carousel.matches(':focus-within')) return;
     carousel.classList.add('is-playing');
     timer = window.setInterval(() => showSlide(activeIndex + 1), intervalMs);
   }
@@ -54,14 +52,11 @@
   previous.addEventListener('click', () => manualMove(activeIndex - 1));
   next.addEventListener('click', () => manualMove(activeIndex + 1));
   indicators.forEach((button, index) => button.addEventListener('click', () => manualMove(index)));
-  carousel.addEventListener('mouseenter', stopTimer);
-  carousel.addEventListener('mouseleave', startTimer);
   carousel.addEventListener('focusin', stopTimer);
   carousel.addEventListener('focusout', event => {
     if (!carousel.contains(event.relatedTarget)) startTimer();
   });
   document.addEventListener('visibilitychange', () => document.hidden ? stopTimer() : startTimer());
-  reducedMotion.addEventListener?.('change', startTimer);
 
   let touchStartX = 0;
   carousel.addEventListener('touchstart', event => {
