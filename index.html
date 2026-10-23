@@ -141,7 +141,26 @@
 
 <section class="page-section application-page" id="solicitud" data-section="solicitud" hidden>
   <div class="page-intro"><p class="eyebrow">PROCESO DE INGRESO</p><h1>Solicitud de inscripción</h1><p>Te acompañaremos paso a paso. Completa cada sección y revisa tus datos antes de continuar.</p></div>
-  <div class="application-layout">
+  <div class="application-program-picker" id="application-program-picker">
+    <p class="eyebrow">ELIGE TU FORMACIÓN</p>
+    <h2>¿A qué programa deseas ingresar?</h2>
+    <p class="program-picker-intro">Selecciona tu programa para abrir el formulario de inscripción correspondiente.</p>
+    <div class="program-picker-grid">
+      <button type="button" class="program-picker-card" data-choose-program="Bachillerato">
+        <span class="program-picker-number">01</span><span class="program-picker-icon" aria-hidden="true">✧</span>
+        <strong>Bachillerato en Teología</strong><span class="program-picker-description">Fundamentos bíblicos y formación teológica.</span><span class="program-picker-action">Seleccionar programa <span aria-hidden="true">→</span></span>
+      </button>
+      <button type="button" class="program-picker-card" data-choose-program="Licenciatura">
+        <span class="program-picker-number">02</span><span class="program-picker-icon" aria-hidden="true">⌘</span>
+        <strong>Licenciatura</strong><span class="program-picker-description">Profundización teológica para la enseñanza y el servicio.</span><span class="program-picker-action">Seleccionar programa <span aria-hidden="true">→</span></span>
+      </button>
+      <button type="button" class="program-picker-card" data-choose-program="Maestría">
+        <span class="program-picker-number">03</span><span class="program-picker-icon" aria-hidden="true">✦</span>
+        <strong>Maestría</strong><span class="program-picker-description">Formación avanzada, análisis y liderazgo cristiano.</span><span class="program-picker-action">Seleccionar programa <span aria-hidden="true">→</span></span>
+      </button>
+    </div>
+  </div>
+  <div class="application-layout" id="application-layout" hidden>
     <aside class="progress-panel"><p class="progress-label">TU PROGRESO</p><div class="progress-track"><span id="progress-fill"></span></div><p class="progress-count" id="progress-count">Etapa 1 de 4</p>
       <ol class="step-list"><li class="step-item current" data-step-item="0"><span>1</span><div><strong>Datos personales</strong><small>Información de contacto</small></div></li><li class="step-item" data-step-item="1"><span>2</span><div><strong>Información de la iglesia</strong><small>Comunidad y ministerio</small></div></li><li class="step-item" data-step-item="2"><span>3</span><div><strong>Documentos</strong><small>Documentación requerida</small></div></li><li class="step-item" data-step-item="3"><span>4</span><div><strong>Realizar entrevista</strong><small>Preguntas del programa</small></div></li></ol>
       <div class="privacy-note"><span>⌑</span><p><strong>Tu información importa</strong><br>Los datos personales deben manejarse de forma privada.</p></div>
