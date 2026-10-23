@@ -731,3 +731,23 @@ button, .button {
 .itin-promo-video { width: min(100% - 40px, 980px); margin: 30px auto 38px; overflow: hidden; border: 1px solid #e2d4bd; border-radius: 18px; background: #1f2a22; box-shadow: 0 16px 36px rgba(43,38,27,.12); }
 .itin-promo-player { display: block; width: 100%; max-height: 560px; aspect-ratio: 16 / 9; object-fit: contain; background: #172019; }
 @media(max-width:600px) { .itin-promo-video { width: calc(100% - 32px); margin: 24px auto 30px; border-radius: 12px; } }
+
+
+/* Tarjetas académicas: tratamiento oscuro y selección clara del programa */
+.program-card, .program-card.featured {
+  background: #293128;
+  border-color: #4b5146;
+  color: #f8f3e8;
+  box-shadow: 0 10px 28px rgba(24,30,23,.10);
+}
+.program-card:hover, .program-card.featured:hover {
+  background: #343c31;
+  border-color: #c9b88f;
+  box-shadow: 0 16px 34px rgba(24,30,23,.18);
+}
+.program-card .program-number { color: #d8c79f; }
+.program-card .program-icon { background: #e7d8b7; color: #293128; }
+.program-card h3 { color: #fffaf0; }
+.program-card p { color: #d4d2c8; }
+.program-card .text-link { color: #e8d5a5; }
+.program-card .text-link:hover { color: #fffaf0; }
