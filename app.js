@@ -1335,104 +1335,171 @@
 
     const matchingDocs = activeAdminDocuments.filter(doc => belongsToStudent(doc, student));
     const docRecord = matchingDocs[0] || null;
+    const fileFields = ['CedulaFrente','CedulaReverso','CartaPastoral','SubirDiploma'];
+    const hiddenDocumentFields = /^(NombreCompleto|IdDocumento|IdD|IdD[0-9]*|IdEstudiante|IdE|IdRep_Entrevista|Fotoperfil|FotoPerfil|Foto de perfil)$/i;
+    const autoDocumentFields = /^(FechaRevision|FechadeCarga|FechaCarga|FechaRevisionDocumento)$/i;
+
     if (docRecord) {
       const docProps = getProperties(docRecord);
-      const fileFields = ['CedulaFrente','CedulaReverso','CartaPastoral','SubirDiploma'];
-      const hiddenDocumentFields = /^(NombreCompleto|IdDocumento|IdD|IdD[0-9]*|IdEstudiante|IdE|IdRep_Entrevista)$/i;
-      const autoDocumentFields = /^(FechaRevision|FechadeCarga|FechaCarga|FechaRevisionDocumento)$/i;
-      const docRows = Object.keys(docProps).filter(name => !hiddenDocumentFields.test(name) && !fileFields.includes(name)).map(name => {
-        if (autoDocumentFields.test(name)) {
-          const currentDate = new Date().toISOString().slice(0,10);
-          return [name, detailDisplayValue(docProps[name]) || currentDate, { type:'date', date:{ start: detailDisplayValue(docProps[name]) || currentDate }, _readonly:true }];
-        }
-        return [name, detailDisplayValue(docProps[name]), docProps[name]];
-      });
-      adminDetailContent.appendChild(makeDetailSection('Página 2 · Campos de DOCUMENTOS', docRows, 'print-documents-page', 'DOCUMENTOS'));
+
+      // Los campos administrativos solo se muestran cuando se activa Editar.
+      if (adminDetailEditing) {
+        const docRows = Object.keys(docProps)
+          .filter(name => !hiddenDocumentFields.test(name) && !fileFields.includes(name))
+          .map(name => {
+            if (autoDocumentFields.test(name)) {
+              const currentDate = new Date().toISOString().slice(0,10);
+              const value = detailDisplayValue(docProps[name]) || currentDate;
+              return [name, value, { type:'date', date:{ start:value }, _readonly:true }];
+            }
+            return [name, detailDisplayValue(docProps[name]), docProps[name]];
+          });
+
+        adminDetailContent.appendChild(
+          makeDetailSection('Página 2 · Campos de DOCUMENTOS', docRows, 'print-documents-page', 'DOCUMENTOS')
+        );
+      }
+
+      // En solo lectura se muestran únicamente archivos que realmente existen.
+      // Fotoperfil se presenta en el marco de foto de perfil, no como campo editable.
       const uploadSection = document.createElement('section');
       uploadSection.className = 'admin-detail-page admin-document-upload-section';
       const uploadHeading = document.createElement('h4');
-      uploadHeading.textContent = 'Archivos de DOCUMENTOS';
+      uploadHeading.textContent = adminDetailEditing ? 'Archivos de DOCUMENTOS' : 'Documentos adjuntos';
       uploadSection.appendChild(uploadHeading);
+      let visibleFiles = 0;
+
       fileFields.forEach(field => {
-        if (!Object.prototype.hasOwnProperty.call(docProps, field)) return;
-        const row = document.createElement('div');
-        row.className = 'admin-document-upload-row';
-        const label = document.createElement('strong');
-        label.textContent = field;
-        row.appendChild(label);
         const existingFiles = notionFiles(docProps[field]);
-        if (existingFiles.length) {
-          const filesList = document.createElement('div');
-          filesList.className = 'admin-document-existing-files';
-          existingFiles.forEach((file,index) => {
-            const url = notionFileUrl(file);
-            const link = document.createElement('a');
-            link.textContent = file.name || ('Archivo ' + (index + 1));
-            if (url) { link.href=url; link.target='_blank'; link.rel='noopener'; }
-            else link.href='#';
-            const imageName = file.name || '';
-            const isImage = /\.(png|jpe?g|webp|gif)(?:$|[?#])/i.test(imageName) || /^image\/(png|jpeg|webp|gif)$/i.test(file.type || '');
-            if (url && isImage) {
-              const preview = document.createElement('img');
-              preview.className = 'admin-document-preview-image';
-              preview.src = url;
-              preview.alt = imageName || field;
-              preview.loading = 'lazy';
-              preview.referrerPolicy = 'no-referrer';
-              preview.addEventListener('error', () => preview.classList.add('is-unavailable'), { once:true });
-              link.replaceChildren(preview, document.createTextNode(imageName || 'Ver imagen'));
-              link.classList.add('admin-document-preview-link');
-            }
-            filesList.appendChild(link);
-            if (adminDetailEditing) {
-              const remove = document.createElement('button');
-              remove.type='button';
-              remove.className='button button-quiet admin-document-remove';
-              remove.textContent='Quitar';
-              remove.addEventListener('click', () => {
-                const key = recordId(docRecord) + ':' + field;
-                const current = pendingDocumentUploads.get(key) || { file:null, remove:false };
-                current.remove = !current.remove;
-                pendingDocumentUploads.set(key,current);
-                remove.textContent = current.remove ? 'Se quitará al guardar · Deshacer' : 'Quitar';
-                remove.classList.toggle('is-danger',current.remove);
-                showDetailStatus(current.remove ? 'El archivo quedó marcado para quitarse al guardar.' : 'Se canceló la eliminación pendiente.',false);
-              });
-              filesList.appendChild(remove);
-            }
-          });
-          row.appendChild(filesList);
-        } else {
-          const empty = document.createElement('p');
-          empty.textContent='Sin archivo adjunto';
-          row.appendChild(empty);
+        const key = recordId(docRecord) + ':' + field;
+        const pendingValue = pendingDocumentUploads.get(key);
+        if (!adminDetailEditing && !existingFiles.length) return;
+        if (adminDetailEditing || existingFiles.length) {
+          const row = document.createElement('div');
+          row.className = 'admin-document-upload-row';
+          const label = document.createElement('strong');
+          label.textContent = field === 'CedulaFrente' ? 'Cédula · frente' :
+            field === 'CedulaReverso' ? 'Cédula · reverso' :
+            field === 'SubirDiploma' ? 'Diploma o constancia académica' :
+            field === 'CartaPastoral' ? 'Carta pastoral' : field;
+          row.appendChild(label);
+
+          if (existingFiles.length) {
+            const filesList = document.createElement('div');
+            filesList.className = 'admin-document-existing-files';
+            existingFiles.forEach((file, index) => {
+              const url = notionFileUrl(file);
+              const fileName = file.name || ('Archivo ' + (index + 1));
+              const isImage = /\.(png|jpe?g)(?:$|[?#])/i.test(fileName) ||
+                /^image\/(png|jpeg)$/i.test(file.type || '');
+              const link = document.createElement('a');
+              link.textContent = fileName;
+              if (url && /^https:\/\//i.test(url)) {
+                link.href = url;
+                link.target = '_blank';
+                link.rel = 'noopener noreferrer';
+              } else {
+                link.href = '#';
+                link.addEventListener('click', event => event.preventDefault());
+              }
+
+              if (url && /^https:\/\//i.test(url) && isImage) {
+                const preview = document.createElement('img');
+                preview.className = 'admin-document-preview-image';
+                preview.src = url;
+                preview.alt = fileName;
+                preview.loading = 'lazy';
+                preview.referrerPolicy = 'no-referrer';
+                preview.addEventListener('error', () => preview.classList.add('is-unavailable'), { once:true });
+                link.replaceChildren(preview, document.createTextNode(fileName));
+                link.classList.add('admin-document-preview-link');
+              }
+              filesList.appendChild(link);
+
+              if (adminDetailEditing) {
+                const remove = document.createElement('button');
+                remove.type = 'button';
+                remove.className = 'button button-quiet admin-document-remove';
+                remove.textContent = pendingValue && pendingValue.remove ? 'Se quitará al guardar · Deshacer' : 'Quitar';
+                remove.addEventListener('click', () => {
+                  const current = pendingDocumentUploads.get(key) || { file:null, remove:false };
+                  current.remove = !current.remove;
+                  pendingDocumentUploads.set(key, current);
+                  remove.textContent = current.remove ? 'Se quitará al guardar · Deshacer' : 'Quitar';
+                  remove.classList.toggle('is-danger', current.remove);
+                  showDetailStatus(current.remove ? 'El archivo quedó marcado para quitarse al guardar.' : 'Se canceló la eliminación pendiente.', false);
+                });
+                filesList.appendChild(remove);
+              }
+            });
+            row.appendChild(filesList);
+            visibleFiles += existingFiles.length;
+          } else if (!adminDetailEditing) {
+            return;
+          } else {
+            const empty = document.createElement('p');
+            empty.textContent = 'Sin archivo adjunto';
+            row.appendChild(empty);
+          }
+
+          if (adminDetailEditing) {
+            const picker = document.createElement('input');
+            picker.type = 'file';
+            picker.accept = '.jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf';
+            picker.setAttribute('aria-label', label.textContent + ' · subir o reemplazar');
+            picker.addEventListener('change', () => {
+              const selected = picker.files && picker.files[0];
+              if (!selected) return;
+              if (selected.size > 4 * 1024 * 1024) {
+                showDetailStatus('El archivo supera el límite de 4 MB.', true);
+                picker.value = '';
+                return;
+              }
+              const extension = selected.name.split('.').pop().toLowerCase();
+              if (!['jpg','jpeg','png','pdf'].includes(extension) ||
+                  !['image/jpeg','image/png','application/pdf'].includes(selected.type)) {
+                showDetailStatus('Formato no permitido. Usa JPG, JPEG, PNG o PDF.', true);
+                picker.value = '';
+                return;
+              }
+              const current = pendingDocumentUploads.get(key) || { file:null, remove:false };
+              current.file = selected;
+              current.remove = false;
+              pendingDocumentUploads.set(key, current);
+              showDetailStatus('Archivo seleccionado: ' + selected.name + '. Pulsa Guardar cambios para enviarlo a Notion.', false);
+            });
+            row.appendChild(picker);
+            const pending = document.createElement('small');
+            pending.className = 'admin-document-pending';
+            pending.dataset.pendingField = field;
+            if (pendingValue && pendingValue.file) pending.textContent = 'Nuevo archivo: ' + pendingValue.file.name;
+            row.appendChild(pending);
+          }
+
+          uploadSection.appendChild(row);
         }
-        if (adminDetailEditing) {
-          const picker = document.createElement('input');
-          picker.type='file'; picker.accept='image/jpeg,image/png,application/pdf';
-          picker.setAttribute('aria-label', field + ' · subir o reemplazar');
-          picker.addEventListener('change', () => {
-            const selected=picker.files && picker.files[0];
-            if (!selected) return;
-            if (selected.size > 4*1024*1024) { showDetailStatus('El archivo supera el límite de 4 MB.',true); picker.value=''; return; }
-            if (!['image/jpeg','image/png','application/pdf'].includes(selected.type)) { showDetailStatus('Formato no permitido. Usa JPG, PNG o PDF.',true); picker.value=''; return; }
-            const key=recordId(docRecord)+':'+field;
-            const current=pendingDocumentUploads.get(key) || {file:null,remove:false};
-            current.file=selected; current.remove=false;
-            pendingDocumentUploads.set(key,current);
-            showDetailStatus('Archivo seleccionado: '+selected.name+'. Pulsa Guardar cambios para enviarlo a Notion.',false);
-          });
-          row.appendChild(picker);
-          const pending = document.createElement('small');
-          pending.className='admin-document-pending';
-          pending.dataset.pendingField=field;
-          row.appendChild(pending);
-        }
-        uploadSection.appendChild(row);
       });
+
+      if (!adminDetailEditing && visibleFiles === 0) {
+        const empty = document.createElement('p');
+        empty.textContent = 'No hay documentos adjuntos para mostrar.';
+        uploadSection.appendChild(empty);
+      }
       adminDetailContent.appendChild(uploadSection);
+    } else if (adminDetailEditing) {
+      adminDetailContent.appendChild(
+        makeDocumentSection('Página 2 · Documentos', null, ['CedulaFrente','CedulaReverso','CartaPastoral','SubirDiploma'])
+      );
     } else {
-      adminDetailContent.appendChild(makeDocumentSection('Página 2 · Documentos', null, ['CedulaFrente','CedulaReverso','Fotoperfil','CartaPastoral','SubirDiploma']));
+      const section = document.createElement('section');
+      section.className = 'admin-detail-page print-documents-page';
+      const heading = document.createElement('h4');
+      heading.textContent = 'Documentos adjuntos';
+      section.appendChild(heading);
+      const empty = document.createElement('p');
+      empty.textContent = 'No hay documentos adjuntos para mostrar.';
+      section.appendChild(empty);
+      adminDetailContent.appendChild(section);
     }
 
     const answerPage = document.createElement('section');
