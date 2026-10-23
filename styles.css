@@ -538,3 +538,29 @@ button, .button {
 .admin-detail-dialog.is-editing .admin-document-upload-section{display:block}
 .admin-detail-dialog:not(.is-editing) .admin-profile-photo-controls{display:none!important}
 .admin-detail-dialog.is-editing .admin-profile-photo-controls{display:block}
+
+
+/* Carrusel cinematográfico de portada ITIN: aislado del resto de la aplicación */
+.campus-carousel{min-height:clamp(430px,42vw,560px);height:100%;max-height:590px;overflow:hidden;isolation:isolate;border-radius:26px;background:#20271f;box-shadow:0 22px 55px #20271f24;position:relative;display:block}
+.campus-carousel:before,.campus-carousel:after{display:none}
+.campus-carousel-track,.campus-slide{position:absolute;inset:0;width:100%;height:100%}
+.campus-slide{opacity:0;visibility:hidden;pointer-events:none;transform:scale(1.025);transition:opacity .85s ease,transform 6s ease,visibility .85s;overflow:hidden}
+.campus-slide.is-active{opacity:1;visibility:visible;pointer-events:auto;transform:scale(1)}
+.campus-slide>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center}
+.campus-slide-shade{position:absolute;inset:0;background:linear-gradient(90deg,#151a14e8 0%,#151a14b8 45%,#151a1450 75%,#151a141a 100%),linear-gradient(0deg,#151a1470,transparent 55%)}
+.campus-slide-copy{position:absolute;left:clamp(22px,4vw,46px);right:clamp(22px,4vw,38px);bottom:clamp(74px,8vw,100px);z-index:2;max-width:490px;color:#fffdf8}
+.campus-slide-kicker{font-size:10px;line-height:1.6;letter-spacing:.16em;font-weight:700;color:#e6cf9d;margin:0 0 13px}
+.campus-slide-copy h2{font-family:"Playfair Display",serif;font-size:clamp(29px,3.5vw,44px);line-height:1.12;letter-spacing:-.025em;color:#fffdf8;margin:0 0 15px;font-weight:600}
+.campus-slide-copy>p:last-child{font-size:clamp(12px,1.15vw,14px);line-height:1.8;color:#fffdf0e8;margin:0;max-width:440px}
+.campus-carousel-arrow{position:absolute;z-index:4;top:50%;transform:translateY(-50%);display:grid;place-items:center;width:42px;height:52px;border:1px solid #fff8;background:#20271f70;color:#fffdf8;font-size:35px;line-height:1;border-radius:14px;cursor:pointer;opacity:.72;transition:opacity .2s,background .2s}
+.campus-carousel-arrow:hover,.campus-carousel-arrow:focus-visible{opacity:1;background:#20271fd9}
+.campus-carousel-prev{left:14px}.campus-carousel-next{right:14px}
+.campus-carousel-indicators{position:absolute;z-index:4;left:clamp(22px,4vw,46px);bottom:28px;display:flex;align-items:center;gap:9px}
+.campus-carousel-indicators button{width:26px;height:4px;padding:0;border:0;border-radius:99px;background:#fff9;cursor:pointer;transition:width .25s,background .25s}
+.campus-carousel-indicators button.is-active{width:42px;background:#e6cf9d}
+.campus-carousel-progress{position:absolute;z-index:4;bottom:0;left:0;height:3px;width:0;background:#e6cf9d}
+.campus-carousel.is-playing .campus-carousel-progress{animation:campus-carousel-timer 6.5s linear infinite}
+@keyframes campus-carousel-timer{from{width:0}to{width:100%}}
+@media(max-width:900px){.campus-carousel{min-height:440px;max-height:520px}.campus-slide-copy{max-width:460px}}
+@media(max-width:650px){.campus-carousel{min-height:430px;height:430px;border-radius:20px}.campus-slide-copy{left:23px;right:22px;bottom:76px}.campus-slide-copy h2{font-size:32px}.campus-slide-copy>p:last-child{font-size:12px;line-height:1.7}.campus-slide-shade{background:linear-gradient(90deg,#151a14dc,#151a1480 75%,#151a1440),linear-gradient(0deg,#151a1480,transparent 70%)}.campus-carousel-arrow{width:34px;height:44px;font-size:30px}.campus-carousel-prev{left:8px}.campus-carousel-next{right:8px}.campus-carousel-indicators{left:23px;bottom:25px}}
+@media(prefers-reduced-motion:reduce){.campus-slide,.campus-carousel-arrow,.campus-carousel-indicators button{transition:none}.campus-carousel.is-playing .campus-carousel-progress{animation:none}}
