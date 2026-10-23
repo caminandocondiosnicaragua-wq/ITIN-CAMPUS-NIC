@@ -1362,6 +1362,19 @@
             link.textContent = file.name || ('Archivo ' + (index + 1));
             if (url) { link.href=url; link.target='_blank'; link.rel='noopener'; }
             else link.href='#';
+            const imageName = file.name || '';
+            const isImage = /\\.(png|jpe?g|webp|gif)(?:$|[?#])/i.test(imageName) || /^image\\/(png|jpeg|webp|gif)$/i.test(file.type || '');
+            if (url && isImage) {
+              const preview = document.createElement('img');
+              preview.className = 'admin-document-preview-image';
+              preview.src = url;
+              preview.alt = imageName || field;
+              preview.loading = 'lazy';
+              preview.referrerPolicy = 'no-referrer';
+              preview.addEventListener('error', () => preview.classList.add('is-unavailable'), { once:true });
+              link.replaceChildren(preview, document.createTextNode(imageName || 'Ver imagen'));
+              link.classList.add('admin-document-preview-link');
+            }
             filesList.appendChild(link);
             if (adminDetailEditing) {
               const remove = document.createElement('button');
