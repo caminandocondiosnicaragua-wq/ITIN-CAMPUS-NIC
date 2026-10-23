@@ -491,7 +491,7 @@ button, .button {
 /* ITIN CAMPUS: barra fija de acciones del expediente */
 .admin-detail-dialog{position:relative;padding-top:12px}
 .admin-detail-heading{position:sticky;top:0;z-index:12;background:#fffdf9;padding:10px 0}
-.admin-detail-actions{position:sticky;top:76px;z-index:11;display:flex;flex-wrap:nowrap;justify-content:flex-start;gap:8px;overflow-x:auto;padding:10px 0 12px;background:#fffdf9;border-bottom:1px solid var(--line);scrollbar-width:thin}
+.admin-detail-actions{position:sticky;top:108px;z-index:11;display:flex;flex-wrap:nowrap;justify-content:flex-start;gap:8px;overflow-x:auto;padding:10px 0 12px;background:#fffdf9;border-bottom:1px solid var(--line);scrollbar-width:thin}
 .admin-icon-action{flex:0 0 76px;min-width:76px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:5px;border:0;background:transparent;color:var(--ink);padding:3px;border-radius:10px;cursor:pointer}
 .admin-icon-action>span{width:44px;height:44px;display:flex;align-items:center;justify-content:center;border:1px solid var(--line);border-radius:8px;background:#f0e6d3;font-size:23px;line-height:1}
 .admin-icon-action small{font-size:10px;text-align:center;line-height:1.2;white-space:normal;max-width:76px}
@@ -504,3 +504,16 @@ button, .button {
 .admin-inline-edit-input[type=checkbox]{width:20px;height:20px;accent-color:#267347}
 .admin-edit-actions{position:sticky;top:130px;z-index:10;display:flex;gap:8px;padding:10px 0;background:#fffdf9}
 @media(max-width:650px){.admin-detail-actions>*{width:auto}.admin-detail-actions{justify-content:flex-start}.admin-detail-dialog{padding:12px}}
+
+/* ITIN CAMPUS: barra completa y un único botón principal de guardado */
+.admin-detail-dialog{scroll-padding-top:170px}
+.admin-detail-heading{min-height:76px}
+.admin-detail-actions{min-height:74px;box-sizing:border-box;align-items:center;padding:12px 0;background:#fffdf9}
+#admin-detail-save{display:none!important}
+.admin-document-upload-row{display:grid;grid-template-columns:minmax(150px,220px) minmax(0,1fr);align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line);font-size:14px}
+.admin-document-existing-files{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.admin-document-existing-files a{overflow-wrap:anywhere}
+.admin-document-upload-row input[type=file]{max-width:100%;font-size:13px}
+.admin-document-upload-row p{margin:0;color:var(--muted)}
+.admin-document-remove{font-size:12px;padding:5px 9px}
+@media(max-width:650px){.admin-detail-actions{top:102px}.admin-document-upload-row{grid-template-columns:1fr;gap:8px}}
