@@ -1331,8 +1331,14 @@
       const fileFields = ['CedulaFrente','CedulaReverso','Fotoperfil','CartaPastoral','SubirDiploma'];
       const hiddenDocumentFields = /^(NombreCompleto|IdDocumento|IdD|IdD[0-9]*|IdEstudiante|IdE|IdRep_Entrevista)$/i;
       const autoDocumentFields = /^(FechaRevision|FechadeCarga|FechaCarga|FechaRevisionDocumento)$/i;
-      const docRows = Object.keys(docProps).filter(name => !hiddenDocumentFields.test(name) && !autoDocumentFields.test(name) && !fileFields.includes(name)).map(name => [name, detailDisplayValue(docProps[name]), docProps[name]]);
-      adminDetailContent.appendChild(makeDetailSection('Página 2 · Todos los campos de DOCUMENTOS', docRows, 'print-documents-page', 'DOCUMENTOS'));
+      const docRows = Object.keys(docProps).filter(name => !hiddenDocumentFields.test(name) && !fileFields.includes(name)).map(name => {
+        if (autoDocumentFields.test(name)) {
+          const currentDate = new Date().toISOString().slice(0,10);
+          return [name, detailDisplayValue(docProps[name]) || currentDate, { type:'date', date:{ start: detailDisplayValue(docProps[name]) || currentDate }, _readonly:true }];
+        }
+        return [name, detailDisplayValue(docProps[name]), docProps[name]];
+      });
+      adminDetailContent.appendChild(makeDetailSection('Página 2 · Campos de DOCUMENTOS', docRows, 'print-documents-page', 'DOCUMENTOS'));
       const uploadSection = document.createElement('section');
       uploadSection.className = 'admin-detail-page admin-document-upload-section';
       const uploadHeading = document.createElement('h4');
@@ -1557,7 +1563,7 @@
       const field = wrap.dataset.property;
       const base = wrap.dataset.base || 'ESTUDIANTE';
       const allowedFields = base === 'DOCUMENTOS' ? documentFields : studentFields;
-      if (!allowedFields.has(field) || protectedField(field)) return;
+      if (!allowedFields.has(field) || protectedField(field) || wrap.dataset.base === 'DOCUMENTOS' && /^(FechaRevision|FechadeCarga|FechaCarga|FechaRevisionDocumento)$/i.test(field)) return;
       const dd = wrap.querySelector('dd');
       if (!dd || dd.querySelector('input')) return;
       const type = dd.dataset.propertyType || '';
@@ -1632,7 +1638,7 @@
             savedCount++;
           }
           if (pending.remove) {
-            await callAdminAction({accion:'adminEliminarArchivoDocumento',id:docId,campo:field});
+            await callAdminAction({accion:'adminReemplazarDocumento',id:docId,campo:field,archivo:{eliminar:true}});
             savedCount++;
           }
         }
