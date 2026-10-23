@@ -1363,7 +1363,7 @@
             if (url) { link.href=url; link.target='_blank'; link.rel='noopener'; }
             else link.href='#';
             const imageName = file.name || '';
-            const isImage = /\\.(png|jpe?g|webp|gif)(?:$|[?#])/i.test(imageName) || /^image\\/(png|jpeg|webp|gif)$/i.test(file.type || '');
+            const isImage = /\.(png|jpe?g|webp|gif)(?:$|[?#])/i.test(imageName) || /^image\/(png|jpeg|webp|gif)$/i.test(file.type || '');
             if (url && isImage) {
               const preview = document.createElement('img');
               preview.className = 'admin-document-preview-image';
