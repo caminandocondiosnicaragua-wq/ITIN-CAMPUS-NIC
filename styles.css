@@ -751,3 +751,18 @@ button, .button {
 .program-card p { color: #d4d2c8; }
 .program-card .text-link { color: #e8d5a5; }
 .program-card .text-link:hover { color: #fffaf0; }
+
+
+/* Selector de programa al entrar desde el menú Solicitud de inscripción */
+.application-program-picker { max-width: 1100px; margin: 0 auto; padding: 18px 0 48px; text-align: center; }
+.application-program-picker h2 { margin: 8px auto 12px; color: var(--olive); font-family: "Playfair Display",serif; font-size: clamp(30px,4vw,42px); line-height: 1.2; }
+.program-picker-intro { max-width: 640px; margin: 0 auto 30px; color: var(--muted); font-size: 14px; line-height: 1.8; }
+.program-picker-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 18px; text-align: left; }
+.program-picker-card { position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: 12px; min-height: 270px; padding: 27px 25px; border: 1px solid #4b5146; border-radius: 20px; background: #293128; color: #fffaf0; text-align: left; cursor: pointer; transition: transform .2s,background .2s,border-color .2s,box-shadow .2s; }
+.program-picker-card:hover,.program-picker-card:focus-visible { transform: translateY(-4px); background: #343c31; border-color: #d7c18d; box-shadow: 0 14px 30px rgba(24,30,23,.17); outline: none; }
+.program-picker-number { position: absolute; top: 22px; right: 22px; color: #d8c79f; font-size: 11px; letter-spacing: .1em; }
+.program-picker-icon { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 14px; background: #e7d8b7; color: #293128; font-size: 23px; }
+.program-picker-card strong { font-family: "Playfair Display",serif; font-size: 22px; line-height: 1.3; }
+.program-picker-description { color: #d4d2c8; font-size: 13px; line-height: 1.7; }
+.program-picker-action { display: flex; justify-content: space-between; align-items: center; gap: 12px; width: 100%; margin-top: auto; padding-top: 12px; color: #e8d5a5; font-size: 12px; font-weight: 700; }
+@media(max-width:760px) { .program-picker-grid { grid-template-columns: 1fr; } .program-picker-card { min-height: 220px; } .application-program-picker { padding-bottom: 32px; } }
