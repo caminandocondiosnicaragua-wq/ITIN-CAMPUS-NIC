@@ -777,3 +777,53 @@ button, .button {
 .application-welcome-robot{display:block;flex:0 0 auto;width:clamp(82px,10vw,112px);height:auto;max-height:126px;object-fit:contain;object-position:center bottom}
 @media(max-width:760px){.application-page .page-intro{padding:36px 22px 20px}.application-welcome{gap:12px}.application-welcome-bubble{padding:14px 17px}.application-welcome-bubble p{font-size:15px}}
 @media(max-width:560px){.application-page .page-intro{padding:32px 20px 18px}.application-welcome{gap:8px}.application-welcome-bubble{padding:12px 14px;border-radius:19px 19px 19px 7px}.application-welcome-bubble p{font-size:14px;line-height:1.55}.application-welcome-robot{width:76px;max-height:100px}}
+
+
+/* Ajuste móvil de portada: elimina el hueco bajo el menú y mejora la lectura sobre la fotografía. */
+@media (max-width: 650px) {
+  .home-page { padding-top: 0; }
+  .home-page .hero {
+    margin-top: 0;
+    height: 72svh;
+    min-height: 450px;
+    max-height: 590px;
+  }
+  .home-page .campus-carousel { min-height: 0; height: 100%; }
+  .home-page .campus-slide > img { object-position: center center; }
+  .home-page .campus-slide-shade {
+    background: linear-gradient(90deg, rgba(18,24,18,.68) 0%, rgba(18,24,18,.38) 58%, rgba(18,24,18,.12) 100%), linear-gradient(0deg, rgba(18,24,18,.64) 0%, rgba(18,24,18,.08) 62%);
+  }
+  .home-page .campus-slide-copy {
+    left: 24px;
+    right: 24px;
+    bottom: 82px;
+    max-width: 100%;
+  }
+  .home-page .campus-slide-copy .campus-slide-kicker { font-size: 9px; line-height: 1.45; margin-bottom: 9px; }
+  .home-page .campus-slide-copy h2 {
+    font-size: clamp(27px, 7.7vw, 35px);
+    line-height: 1.08;
+    letter-spacing: -.025em;
+    margin: 0 0 12px;
+    text-wrap: balance;
+  }
+  .home-page .campus-slide-copy > p:not(.campus-slide-kicker) {
+    max-width: 36ch;
+    font-size: clamp(13px, 3.7vw, 15px);
+    line-height: 1.55;
+    margin-bottom: 14px;
+  }
+  .home-page .campus-slide-cta { min-height: 42px; font-size: 11px; padding: 10px 14px; gap: 9px; }
+  .home-page .campus-slide-cta-map { margin-top: 7px; }
+  .home-page .campus-carousel-arrow { width: 30px; height: 38px; font-size: 25px; border-radius: 10px; opacity: .85; }
+  .home-page .campus-carousel-prev { left: 5px; }
+  .home-page .campus-carousel-next { right: 5px; }
+  .home-page .campus-carousel-indicators { left: 24px; bottom: 22px; }
+}
+@media (max-width: 380px) {
+  .home-page .hero { height: 74svh; min-height: 430px; }
+  .home-page .campus-slide-copy { left: 21px; right: 21px; bottom: 76px; }
+  .home-page .campus-slide-copy h2 { font-size: clamp(26px, 7.5vw, 30px); }
+  .home-page .campus-slide-copy > p:not(.campus-slide-kicker) { font-size: 12px; line-height: 1.5; }
+  .home-page .campus-slide-cta { font-size: 10px; padding: 9px 12px; }
+}
