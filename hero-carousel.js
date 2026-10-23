@@ -26,7 +26,7 @@
     });
     carousel.classList.remove('is-playing');
     void carousel.offsetWidth;
-    if (!reducedMotion.matches && !document.hidden && !carousel.matches(':hover, :focus-within')) {
+    if (!document.hidden) {
       carousel.classList.add('is-playing');
     }
   }
