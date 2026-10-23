@@ -937,6 +937,17 @@
   }
 
 
+  // Puente mínimo para módulos administrativos externos; conserva la credencial dentro de esta sesión.
+  window.ITINAdminRequest = async function(payload) {
+    if (!adminCredential) throw new Error('Inicia sesión como administrador para continuar.');
+    const response = await fetch(API_URL, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify({...payload, credential:adminCredential}), redirect:'follow' });
+    const raw = await response.text();
+    let result;
+    try { result = JSON.parse(raw); } catch (_) { throw new Error('La API no devolvió JSON válido.'); }
+    if (!response.ok || result.ok !== true) throw new Error(result.error || result.mensaje || 'La operación no se completó.');
+    return result;
+  };
+
   // Expediente individual imprimible. Todas las consultas son de solo lectura.
   const adminDetailOverlay = document.querySelector('#admin-student-detail');
   const adminDetailTitle = document.querySelector('#admin-detail-title');
