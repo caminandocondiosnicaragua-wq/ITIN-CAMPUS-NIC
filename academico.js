@@ -3,7 +3,7 @@
   const target = document.getElementById('admin-module-placeholder');
   const moduleView = document.getElementById('admin-module-view');
   if (!target || !moduleView) return;
-  const tabs = ['PROGRAMACLASES','TIPOCAMBIO','DOCENTE','MATERIAS','CURSOS','IdPaqLibros'];
+  const tabs = ['PROGRAMACLASES','TIPOCAMBIO','DOCENTE','MATERIAS'];
   const schema = {
     CURSOS:[['DuracionAnios','number'],['IdCurso','unique_id'],['Estado','status'],['NombreCurso','title']],
     IdPaqLibros:[['Idpaq','unique_id'],['Descripcion','title']],
@@ -12,7 +12,7 @@
     MATERIAS:[['EstadoMateria','status'],['Mat','unique_id'],['Descripcion','relation'],['NombreDocente','relation'],['HorasTotales','number'],['NombreMateria','title']],
     PROGRAMACLASES:[['Prog','unique_id'],['NombreCurso','relation'],['Costo_delMesCor','number'],['Anio','number'],['Estado','status'],['Costo_MatriculaDolar','number'],['Sede','select'],['CostoLibros','number'],['Descripcion','relation'],['Programa','title']]
   };
-  let activeBase = 'CURSOS', records = [], cursor = null, cursorStack = [], hasMore = false, pending = new Map(), creating = false, editMode = false, selectedId = null, searchTerm = '', relationNames = {};
+  let activeBase = 'PROGRAMACLASES', records = [], cursor = null, cursorStack = [], hasMore = false, pending = new Map(), creating = false, editMode = false, selectedId = null, searchTerm = '', relationNames = {};
   const el = (tag, cls, text) => { const n=document.createElement(tag); if(cls)n.className=cls; if(text!==undefined)n.textContent=text; return n; };
   const call = (payload) => { if(typeof window.ITINAdminRequest!=='function') throw new Error('No está disponible la conexión administrativa. Recarga la página.'); return window.ITINAdminRequest(payload); };
   const rawValue = (record, field, type) => { const p=(record.properties||{})[field]; if(!p)return ''; const v=p[type]; if(type==='title'||type==='rich_text')return (v||[]).map(x=>x.plain_text||x.text?.content||'').join(''); if(type==='number')return v==null?'':String(v); if(type==='status'||type==='select')return v?.name||''; if(type==='date')return v?.start||''; if(type==='phone_number')return v||''; if(type==='unique_id')return v?.number==null?'':String(v.prefix||'')+String(v.number); if(type==='relation')return (v||[]).map(x=>x.id).join(','); return ''; };
