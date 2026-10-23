@@ -11,6 +11,7 @@
   <link rel="stylesheet" href="styles.css">
   <script src="https://accounts.google.com/gsi/client" defer></script>
   <script src="app.js?v=20261023b" defer></script>
+  <script src="hero-carousel.js" defer></script>
 </head>
 <body>
 <header class="site-header">
@@ -32,15 +33,44 @@
       <div class="hero-actions"><a class="button button-primary" href="#solicitud">Iniciar solicitud <span>→</span></a><a class="button button-quiet" href="#programas">Conocer los programas</a></div>
       <div class="hero-note"><span class="note-dot"></span> Formación para el crecimiento espiritual y el servicio cristiano</div>
     </div>
-    <div class="hero-art itin-emblem-stage" aria-label="Logo institucional interactivo y lema Piedad, Estudio y Servicio">
-      <div class="itin-logo-display">
-        <img class="itin-hero-logo" src="img/LOGO%20ITIN.png" alt="Logo del Instituto Teológico Interdenominacional de Nicaragua">
-        <div class="itin-value-seal" aria-label="Piedad, Estudio y Servicio">
-          <span>Piedad</span>
-          <span>Estudio</span>
-          <span>Servicio</span>
-        </div>
+    <div class="hero-art campus-carousel" id="campus-carousel" aria-label="Conoce el campus, la capilla y el hospedaje">
+      <div class="campus-carousel-track">
+        <article class="campus-slide is-active" aria-hidden="false">
+          <img src="img/POR%20FUERA.jpeg" alt="Exterior del ITIN Campus" fetchpriority="high">
+          <div class="campus-slide-shade"></div>
+          <div class="campus-slide-copy">
+            <p class="campus-slide-kicker">ITIN CAMPUS · FORMACIÓN BÍBLICA</p>
+            <h2>Un lugar para crecer en la fe.</h2>
+            <p>Profundiza en la Palabra, fortalece tu llamado y prepárate para servir con conocimiento, convicción y amor.</p>
+          </div>
+        </article>
+        <article class="campus-slide" aria-hidden="true">
+          <img src="img/Capilla.jpeg" alt="Capilla del ITIN para la oración y el devocional" loading="lazy">
+          <div class="campus-slide-shade"></div>
+          <div class="campus-slide-copy">
+            <p class="campus-slide-kicker">UN ESPACIO PARA EL ENCUENTRO CON DIOS</p>
+            <h2>Detente. Ora. Escucha.</h2>
+            <p>En la quietud de la capilla, apartamos el ruido del mundo para buscar la presencia de Dios, meditar en su Palabra y disponer el corazón para escuchar su voz.</p>
+          </div>
+        </article>
+        <article class="campus-slide" aria-hidden="true">
+          <img src="img/Hotel.jpeg" alt="Hospedaje para la semana intensiva de estudio" loading="lazy">
+          <div class="campus-slide-shade"></div>
+          <div class="campus-slide-copy">
+            <p class="campus-slide-kicker">UNA SEMANA PARA APRENDER Y COMPARTIR</p>
+            <h2>Más que estudiar, crecer juntos.</h2>
+            <p>Durante la semana intensiva de Bachillerato, compartimos la mesa, las conversaciones y la vida fraterna, como una familia unida por la fe y el aprendizaje.</p>
+          </div>
+        </article>
       </div>
+      <button class="campus-carousel-arrow campus-carousel-prev" type="button" aria-label="Imagen anterior">‹</button>
+      <button class="campus-carousel-arrow campus-carousel-next" type="button" aria-label="Imagen siguiente">›</button>
+      <div class="campus-carousel-indicators" role="group" aria-label="Elegir imagen del campus">
+        <button type="button" class="is-active" aria-label="Mostrar exterior del campus" aria-pressed="true"></button>
+        <button type="button" aria-label="Mostrar capilla" aria-pressed="false"></button>
+        <button type="button" aria-label="Mostrar hospedaje" aria-pressed="false"></button>
+      </div>
+      <span class="campus-carousel-progress" aria-hidden="true"></span>
     </div>
   </div>
   <section class="programs-section" id="programas"><div class="section-heading"><p class="eyebrow">NUESTRA OFERTA ACADÉMICA</p><h2>Crece en el conocimiento de la Palabra</h2><p>Programas de formación teológica para avanzar en el estudio bíblico y fortalecer el compromiso con el ministerio cristiano.</p></div>
