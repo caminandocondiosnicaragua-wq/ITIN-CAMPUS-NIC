@@ -1418,22 +1418,94 @@
     }
   }
 
+
+  // Acciones administrativas con respuesta visible y validación en servidor.
+  async function callAdminAction(payload) {
+    if (!adminCredential) throw new Error('La sesión administrativa expiró. Inicia sesión de nuevo.');
+    const response = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ ...payload, credential: adminCredential }), redirect: 'follow' });
+    const raw = await response.text();
+    let result;
+    try { result = JSON.parse(raw); } catch (_) { throw new Error('La API no devolvió JSON válido. No se puede confirmar la operación.'); }
+    if (!response.ok || result.ok !== true) throw new Error(result.error || result.mensaje || 'La API no confirmó la operación.');
+    return result;
+  }
+
+  const adminDetailEdit = document.querySelector('#admin-detail-edit');
+  if (adminDetailEdit) adminDetailEdit.addEventListener('click', async () => {
+    if (!activeAdminStudent) return showDetailStatus('Selecciona primero un expediente.', true);
+    const editableFields = ['NombreCompleto','Cedula','FechaNac','Edad','Correo','Celular','Departamento','Municipio','Dirección','EstadoCivil','Profesión','Escolaridad','GradoAprobado','Cargo','Asociación','NombrePastor','Iglesia','Programa','FechaEntrevista'];
+    const field = window.prompt('Escribe el nombre exacto de una propiedad editable:\n\n' + editableFields.join(', '));
+    if (!field) return;
+    if (!editableFields.includes(field.trim())) return showDetailStatus('Propiedad no permitida. No se realizó ningún cambio.', true);
+    const current = detailDisplayValue(getProperties(activeAdminStudent)[field.trim()]);
+    const value = window.prompt('Nuevo valor para "' + field.trim() + '":', current);
+    if (value === null || value.trim() === current) return;
+    if (!window.confirm('¿Guardar el cambio de "' + field.trim() + '" en Notion?')) return;
+    showDetailStatus('Guardando cambio…', false);
+    try {
+      const result = await callAdminAction({ accion: 'adminActualizarRegistro', base: 'ESTUDIANTE', id: recordId(activeAdminStudent), propiedades: { [field.trim()]: value.trim() } });
+      showDetailStatus(result.mensaje || 'Dato actualizado correctamente.', false);
+      await loadAdminStudents(); await openAdminStudentDetail(activeAdminStudent);
+    } catch (error) { showDetailStatus(error.message || 'No se pudo actualizar el dato.', true); }
+  });
+
+  const adminDetailToggleStatus = document.querySelector('#admin-detail-toggle-status');
+  if (adminDetailToggleStatus) adminDetailToggleStatus.addEventListener('click', async () => {
+    if (!activeAdminStudent) return showDetailStatus('Selecciona primero un expediente.', true);
+    const id = recordId(activeAdminStudent);
+    const rawState = getProperties(activeAdminStudent).Estado;
+    const current = rawState && typeof rawState === 'object' ? rawState.checkbox === true : rawState === true || String(rawState).toLowerCase() === 'sí' || String(rawState).toLowerCase() === 'true';
+    const nextActive = !current;
+    if (!window.confirm('¿Confirmas ' + (nextActive ? 'activar' : 'desactivar') + ' este registro?\n\nEl cambio se guardará en Notion.')) return;
+    showDetailStatus('Actualizando estado…', false);
+    try {
+      const result = await callAdminAction({ accion: nextActive ? 'adminActivarRegistro' : 'adminDesactivarRegistro', base: 'ESTUDIANTE', id });
+      showDetailStatus(result.mensaje || 'Estado actualizado.', false);
+      await loadAdminStudents(); await openAdminStudentDetail(activeAdminStudent);
+    } catch (error) { showDetailStatus(error.message || 'No se pudo cambiar el estado.', true); }
+  });
+
+  const adminDetailReplaceDocument = document.querySelector('#admin-detail-replace-document');
+  if (adminDetailReplaceDocument) adminDetailReplaceDocument.addEventListener('click', async () => {
+    if (!activeAdminStudent) return showDetailStatus('Selecciona primero un expediente.', true);
+    const relatedDocs = activeAdminDocuments.filter(doc => belongsToStudent(doc, activeAdminStudent));
+    if (!relatedDocs.length) return showDetailStatus('No se encontró un registro DOCUMENTOS relacionado con este estudiante.', true);
+    const fields = ['CedulaFrente','CedulaReverso','Fotoperfil','SubirDiploma','CartaPastoral'];
+    const field = window.prompt('Nombre exacto del documento que vas a reemplazar:\n\n' + fields.join(', '), 'CedulaFrente');
+    if (!field) return;
+    if (!fields.includes(field.trim())) return showDetailStatus('Campo de documento no permitido.', true);
+    const doc = relatedDocs.find(item => getProperties(item)[field.trim()] != null) || relatedDocs[0];
+    const file = document.createElement('input'); file.type = 'file'; file.accept = 'image/jpeg,image/png,application/pdf';
+    file.onchange = async () => {
+      const selected = file.files && file.files[0]; if (!selected) return;
+      if (selected.size > 4 * 1024 * 1024) return showDetailStatus('El archivo supera el límite de 4 MB.', true);
+      if (!['image/jpeg','image/png','application/pdf'].includes(selected.type)) return showDetailStatus('Formato no permitido. Usa JPG, PNG o PDF.', true);
+      if (!window.confirm('Se reemplazará el campo "' + field.trim() + '" del registro DOCUMENTOS seleccionado. ¿Continuar?')) return;
+      showDetailStatus('Cargando y reemplazando documento…', false);
+      try {
+        const result = await callAdminAction({ accion: 'adminReemplazarDocumento', id: recordId(doc), campo: field.trim(), archivo: { nombre: selected.name, tipo: selected.type, base64: await fileToBase64(selected) } });
+        showDetailStatus(result.mensaje || 'Documento reemplazado en Notion.', false);
+        await openAdminStudentDetail(activeAdminStudent);
+      } catch (error) { showDetailStatus(error.message || 'No se pudo reemplazar el documento.', true); }
+    };
+    file.click();
+  });
+
   const adminDetailDelete = document.querySelector('#admin-detail-delete');
   if (adminDetailDelete) adminDetailDelete.addEventListener('click', async () => {
-    if (!activeAdminStudent) {
-      showDetailStatus('No hay un estudiante seleccionado.', true);
-      return;
-    }
+    if (!activeAdminStudent) return showDetailStatus('No hay un estudiante seleccionado.', true);
     const studentName = studentField(activeAdminStudent, 'nombre') || 'este estudiante';
-    const confirmation = window.confirm(
-      '¿Estás segura de que deseas eliminar la información de ' + studentName + '?\n\n' +
-      'ADVERTENCIA: la eliminación será EN CASCADA. Se eliminará el registro del estudiante y los documentos y respuestas relacionados mediante su identificador.\n\n' +
-      'Esta acción es para solicitudes de prueba o casos que no serán aprobados. No se puede deshacer.\n\n' +
-      'Pulsa Aceptar únicamente si confirmas que corresponde eliminar este expediente.'
-    );
-    if (!confirmation) return;
-    showDetailStatus('La eliminación todavía no está habilitada en el servidor. No se ha borrado ningún dato.', true);
-  });
+    if (!window.confirm('ADVERTENCIA: vas a ARCHIVAR el registro de ' + studentName + '.\n\nEsto lo ocultará de los registros activos, pero NO lo elimina permanentemente ni archiva automáticamente los documentos y respuestas relacionados.\n\n¿Deseas continuar?')) return;
+    const motivo = window.prompt('Escribe el motivo del archivo (mínimo 5 caracteres):');
+    if (motivo === null || motivo.trim().length < 5) return showDetailStatus('Operación cancelada. Se requiere un motivo de al menos 5 caracteres.', true);
+    showDetailStatus('Archivando registro…', false);
+    try {
+      const result = await callAdminAction({ accion: 'adminEliminarRegistro', base: 'ESTUDIANTE', id: recordId(activeAdminStudent), confirmar: true, motivo: motivo.trim() });
+      showDetailStatus(result.mensaje || 'Registro archivado. No se borró permanentemente.', false);
+      adminDetailDelete.disabled = true;
+      await loadAdminStudents();
+    } catch (error) { showDetailStatus(error.message || 'No se pudo archivar el registro.', true); }
+  });;
 
   const detailRefresh = document.querySelector('#admin-detail-refresh');
   const detailEnroll = document.querySelector('#admin-detail-enroll');
