@@ -1360,9 +1360,68 @@
         );
       }
 
-      // En solo lectura se muestran únicamente archivos que realmente existen.
-      // Fotoperfil se presenta en el marco de foto de perfil, no como campo editable.
-      const uploadSection = document.createElement('section');
+      // En solo lectura, mostrar los archivos de DOCUMENTOS como imágenes,
+      // tal como la galería original. Fotoperfil sigue en su marco propio.
+      if (!adminDetailEditing) {
+        const gallerySection = document.createElement('section');
+        gallerySection.className = 'admin-detail-page print-documents-page';
+        const galleryHeading = document.createElement('h4');
+        galleryHeading.textContent = 'Página 2 · Documentos';
+        gallerySection.appendChild(galleryHeading);
+        let imageCount = 0;
+
+        ['CedulaFrente','CedulaReverso','CartaPastoral','SubirDiploma'].forEach(field => {
+          notionFiles(docProps[field]).forEach((file, index) => {
+            const url = notionFileUrl(file);
+            const fileName = file.name || (field + ' ' + (index + 1));
+            if (!url || !/^https:\/\//i.test(url)) return;
+
+            const isImage = /\.(png|jpe?g)(?:$|[?#])/i.test(fileName) ||
+              /^image\/(png|jpeg)$/i.test(file.type || '');
+            const label = document.createElement('h5');
+            label.className = 'admin-document-label';
+            label.textContent = field === 'CedulaFrente' ? 'Cédula · frente' :
+              field === 'CedulaReverso' ? 'Cédula · reverso' :
+              field === 'SubirDiploma' ? 'Diploma o constancia académica' : 'Carta pastoral';
+            gallerySection.appendChild(label);
+
+            if (isImage) {
+              const figure = document.createElement('figure');
+              figure.className = 'admin-document-figure';
+              const image = document.createElement('img');
+              image.src = url;
+              image.alt = label.textContent;
+              image.loading = 'eager';
+              image.referrerPolicy = 'no-referrer';
+              image.addEventListener('error', () => {
+                figure.classList.add('admin-document-image-error');
+                image.remove();
+                const message = document.createElement('p');
+                message.textContent = 'No se pudo mostrar esta imagen.';
+                figure.appendChild(message);
+              }, { once:true });
+              figure.appendChild(image);
+              gallerySection.appendChild(figure);
+            } else if (/\.pdf(?:$|[?#])/i.test(fileName) || file.type === 'application/pdf') {
+              const link = document.createElement('a');
+              link.href = url;
+              link.target = '_blank';
+              link.rel = 'noopener noreferrer';
+              link.textContent = 'Abrir PDF: ' + fileName;
+              gallerySection.appendChild(link);
+            }
+            imageCount++;
+          });
+        });
+
+        if (!imageCount) {
+          const empty = document.createElement('p');
+          empty.textContent = 'No hay archivos documentales adjuntos para mostrar.';
+          gallerySection.appendChild(empty);
+        }
+        adminDetailContent.appendChild(gallerySection);
+      } else {
+        const uploadSection = document.createElement('section');
       uploadSection.className = 'admin-detail-page admin-document-upload-section';
       const uploadHeading = document.createElement('h4');
       uploadHeading.textContent = adminDetailEditing ? 'Archivos de DOCUMENTOS' : 'Documentos adjuntos';
@@ -1486,6 +1545,7 @@
         uploadSection.appendChild(empty);
       }
       adminDetailContent.appendChild(uploadSection);
+      }
     } else if (adminDetailEditing) {
       adminDetailContent.appendChild(
         makeDocumentSection('Página 2 · Documentos', null, ['CedulaFrente','CedulaReverso','CartaPastoral','SubirDiploma'])
