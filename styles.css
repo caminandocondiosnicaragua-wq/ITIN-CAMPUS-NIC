@@ -517,3 +517,7 @@ button, .button {
 .admin-document-upload-row p{margin:0;color:var(--muted)}
 .admin-document-remove{font-size:12px;padding:5px 9px}
 @media(max-width:650px){.admin-detail-actions{top:102px}.admin-document-upload-row{grid-template-columns:1fr;gap:8px}}
+
+/* La foto de perfil solo se puede seleccionar en modo de edición */
+.admin-detail-dialog:not(.is-editing) .admin-profile-photo-controls{display:none!important}
+.admin-detail-dialog.is-editing .admin-profile-photo-controls{display:block}
