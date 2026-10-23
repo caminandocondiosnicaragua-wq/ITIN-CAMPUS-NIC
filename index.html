@@ -10,7 +10,7 @@
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
   <script src="https://accounts.google.com/gsi/client" defer></script>
-  <script src="app.js" defer></script>
+  <script src="app.js?v=20261023b" defer></script>
 </head>
 <body>
 <header class="site-header">
@@ -112,11 +112,6 @@
 <div id="admin-student-detail" class="admin-detail-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="admin-detail-title">
   <div class="admin-detail-dialog"><div class="admin-detail-heading"><div><p class="eyebrow">EXPEDIENTE INDIVIDUAL</p><h3 id="admin-detail-title">Expediente del estudiante</h3></div><button type="button" id="admin-detail-close" class="button button-quiet">Cerrar</button></div>
   <p id="admin-detail-status" class="admin-data-status" role="status">Preparando expediente…</p>
-  <div class="admin-profile-photo-area">
-    <div id="admin-profile-photo-frame" class="admin-profile-photo-frame"><div class="admin-profile-photo-placeholder"><span aria-hidden="true">＋</span><strong>Foto de perfil</strong><small>No se ha encontrado una foto guardada</small></div></div>
-    <div class="admin-profile-photo-controls"><label class="admin-profile-photo-upload">Seleccionar foto<input id="admin-profile-photo-input" type="file" accept="image/png,image/jpeg,image/webp"></label><p id="admin-profile-photo-status" class="admin-data-footnote">Si el estudiante ya subió su foto, aparecerá aquí.</p></div>
-  </div>
-  <div id="admin-detail-content"></div>
   <div class="admin-detail-actions" role="toolbar" aria-label="Acciones del expediente">
     <button type="button" class="admin-icon-action" id="admin-detail-edit" title="Editar" aria-label="Editar"><span aria-hidden="true">✎</span><small>Editar</small></button>
     <button type="button" class="admin-icon-action" id="admin-detail-save" title="Guardar" aria-label="Guardar" disabled><span aria-hidden="true">▣</span><small>Guardar</small></button>
@@ -124,7 +119,14 @@
     <button type="button" class="admin-icon-action" id="admin-detail-enroll" title="Matricular" aria-label="Matricular"><span aria-hidden="true">▣</span><small>Matricular</small></button>
     <button type="button" class="admin-icon-action" id="admin-detail-payments" title="Gestión de pagos" aria-label="Gestión de pagos"><span aria-hidden="true">$</span><small>Gestión de pagos</small></button>
     <button type="button" class="admin-icon-action is-danger" id="admin-detail-delete" title="Eliminar (archivar)" aria-label="Eliminar"><span aria-hidden="true">⌫</span><small>Eliminar</small></button>
-  </div><p class="admin-data-footnote">Las preguntas y respuestas de entrevista son de solo lectura. Los cambios se guardan únicamente al pulsar Guardar.</p>
+  </div>
+  <p class="admin-data-footnote">Las preguntas y respuestas de entrevista son de solo lectura. Los cambios se guardan únicamente al pulsar Guardar.</p>
+  <div class="admin-profile-photo-area">
+    <div id="admin-profile-photo-frame" class="admin-profile-photo-frame"><div class="admin-profile-photo-placeholder"><span aria-hidden="true">＋</span><strong>Foto de perfil</strong><small>No se ha encontrado una foto guardada</small></div></div>
+    <div class="admin-profile-photo-controls"><label class="admin-profile-photo-upload">Seleccionar foto<input id="admin-profile-photo-input" type="file" accept="image/png,image/jpeg,image/webp"></label><p id="admin-profile-photo-status" class="admin-data-footnote">Si el estudiante ya subió su foto, aparecerá aquí.</p></div>
+  </div>
+  <div id="admin-detail-content"></div>
+
   </div></div>
 </div>
 <div id="admin-module-placeholder" class="admin-module-notice"><strong>Funciones en preparación</strong><p>Este módulo se conectará cuando estén verificadas sus consultas y permisos.</p></div></section></div></section>
