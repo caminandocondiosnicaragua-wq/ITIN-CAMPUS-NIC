@@ -486,3 +486,21 @@ button, .button {
   color: #9b3d32;
   font-weight: 700;
 }
+
+
+/* ITIN CAMPUS: barra fija de acciones del expediente */
+.admin-detail-dialog{position:relative;padding-top:12px}
+.admin-detail-heading{position:sticky;top:0;z-index:12;background:#fffdf9;padding:10px 0}
+.admin-detail-actions{position:sticky;top:0;z-index:11;display:flex;flex-wrap:nowrap;justify-content:flex-start;gap:8px;overflow-x:auto;padding:10px 0 12px;background:#fffdf9;border-bottom:1px solid var(--line);scrollbar-width:thin}
+.admin-icon-action{flex:0 0 76px;min-width:76px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:5px;border:0;background:transparent;color:var(--ink);padding:3px;border-radius:10px;cursor:pointer}
+.admin-icon-action>span{width:44px;height:44px;display:flex;align-items:center;justify-content:center;border:1px solid var(--line);border-radius:8px;background:#f0e6d3;font-size:23px;line-height:1}
+.admin-icon-action small{font-size:10px;text-align:center;line-height:1.2;white-space:normal;max-width:76px}
+.admin-icon-action:hover:not(:disabled),.admin-icon-action:focus-visible{background:#f5eddf;outline:2px solid #b99b6d;outline-offset:1px}
+.admin-icon-action:disabled{opacity:.4;cursor:not-allowed}
+.admin-icon-action.is-danger>span{background:#fbe8e5;color:#9b2d25;border-color:#e9b8b2}
+.admin-detail-content .admin-detail-page{scroll-margin-top:80px}
+.admin-readonly-checkbox{display:inline-flex;align-items:center;gap:5px;font-weight:600}
+.admin-readonly-checkbox.is-checked{color:#267347}
+.admin-inline-edit-input[type=checkbox]{width:20px;height:20px;accent-color:#267347}
+.admin-edit-actions{position:sticky;top:70px;z-index:10;display:flex;gap:8px;padding:10px 0;background:#fffdf9}
+@media(max-width:650px){.admin-detail-actions>*{width:auto}.admin-detail-actions{justify-content:flex-start}.admin-detail-dialog{padding:12px}}
