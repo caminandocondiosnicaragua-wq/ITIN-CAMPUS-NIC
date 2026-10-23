@@ -1119,6 +1119,14 @@
     selectedProfilePhotoFile = file;
     if (selectedProfilePhotoUrl) URL.revokeObjectURL(selectedProfilePhotoUrl);
     selectedProfilePhotoUrl = URL.createObjectURL(file);
+    const relatedDoc = activeAdminDocuments.find(doc => belongsToStudent(doc, activeAdminStudent));
+    if (!adminDetailEditing || !relatedDoc) {
+      if (adminProfilePhotoStatus) adminProfilePhotoStatus.textContent = 'No se puede preparar la foto: activa Editar y verifica que exista el registro DOCUMENTOS relacionado.';
+      return;
+    }
+    const photoKey = recordId(relatedDoc) + ':Fotoperfil';
+    pendingDocumentUploads.set(photoKey, { file, remove:false });
+    showDetailStatus('Foto seleccionada: ' + file.name + '. Pulsa el icono Guardar para enviarla a Notion.', false);
     renderProfilePhoto(activeAdminStudent, activeAdminDocuments);
   });
 
@@ -1329,7 +1337,7 @@
     const docRecord = matchingDocs[0] || null;
     if (docRecord) {
       const docProps = getProperties(docRecord);
-      const fileFields = ['CedulaFrente','CedulaReverso','Fotoperfil','CartaPastoral','SubirDiploma'];
+      const fileFields = ['CedulaFrente','CedulaReverso','CartaPastoral','SubirDiploma'];
       const hiddenDocumentFields = /^(NombreCompleto|IdDocumento|IdD|IdD[0-9]*|IdEstudiante|IdE|IdRep_Entrevista)$/i;
       const autoDocumentFields = /^(FechaRevision|FechadeCarga|FechaCarga|FechaRevisionDocumento)$/i;
       const docRows = Object.keys(docProps).filter(name => !hiddenDocumentFields.test(name) && !fileFields.includes(name)).map(name => {
@@ -1610,9 +1618,13 @@
     cancel.type = 'button'; cancel.className = 'button button-quiet'; cancel.textContent = 'Cancelar edición';
     actions.append(save, cancel);
     content.prepend(actions);
-    adminDetailEdit.disabled = true;
+    adminDetailEdit.disabled = false;
+    const toolbarSave = document.querySelector('#admin-detail-save');
+    const toolbarCancel = document.querySelector('#admin-detail-cancel');
+    if (toolbarSave) toolbarSave.disabled = false;
+    if (toolbarCancel) toolbarCancel.hidden = false;
     showDetailStatus('Modo de edición activo. Modifica los campos y guarda cuando termines.', false);
-    cancel.addEventListener('click', async () => { adminDetailEditing=false; if (adminDetailDialog) adminDetailDialog.classList.remove('is-editing'); pendingDocumentUploads.clear(); adminDetailEdit.disabled = false; await openAdminStudentDetail(activeAdminStudent); adminDetailEdit.disabled = false; });
+    cancel.addEventListener('click', async () => { adminDetailEditing=false; if (adminDetailDialog) adminDetailDialog.classList.remove('is-editing'); pendingDocumentUploads.clear(); selectedProfilePhotoFile=null; if(selectedProfilePhotoUrl){URL.revokeObjectURL(selectedProfilePhotoUrl);selectedProfilePhotoUrl='';} if(adminProfilePhotoInput) adminProfilePhotoInput.value=''; const toolbarSave=document.querySelector('#admin-detail-save'); const toolbarCancel=document.querySelector('#admin-detail-cancel'); if(toolbarSave) toolbarSave.disabled=true; if(toolbarCancel) toolbarCancel.hidden=true; adminDetailEdit.disabled = false; await openAdminStudentDetail(activeAdminStudent); adminDetailEdit.disabled = false; });
     save.addEventListener('click', async () => {
       const cambios = {};
       actions.parentElement.querySelectorAll('.admin-inline-edit-input').forEach(input => {
@@ -1659,7 +1671,14 @@
           }
         }
         pendingDocumentUploads.clear();
+        selectedProfilePhotoFile=null;
+        if(selectedProfilePhotoUrl){URL.revokeObjectURL(selectedProfilePhotoUrl);selectedProfilePhotoUrl='';}
+        if(adminProfilePhotoInput) adminProfilePhotoInput.value='';
         adminDetailEditing = false;
+        const toolbarSave=document.querySelector('#admin-detail-save');
+        const toolbarCancel=document.querySelector('#admin-detail-cancel');
+        if(toolbarSave) toolbarSave.disabled=true;
+        if(toolbarCancel) toolbarCancel.hidden=true;
         if (adminDetailDialog) adminDetailDialog.classList.remove('is-editing');
         invalidateAdminReadCache('estudiantes','documentos');
         await loadAdminStudents(true);
@@ -1677,8 +1696,15 @@
   const adminDetailSaveToolbar = document.querySelector('#admin-detail-save');
   if (adminDetailSaveToolbar) adminDetailSaveToolbar.addEventListener('click', () => {
     const inlineSave = adminDetailContent && adminDetailContent.querySelector('.admin-edit-actions .button-primary');
-    if (inlineSave) inlineSave.click();
+    if (inlineSave && adminDetailEditing) inlineSave.click();
     else showDetailStatus('Pulsa Editar antes de guardar cambios.', true);
+  });
+
+  const adminDetailCancelToolbar = document.querySelector('#admin-detail-cancel');
+  if (adminDetailCancelToolbar) adminDetailCancelToolbar.addEventListener('click', () => {
+    const inlineCancel = adminDetailContent && adminDetailContent.querySelector('.admin-edit-actions .button-quiet');
+    if (inlineCancel && adminDetailEditing) inlineCancel.click();
+    else showDetailStatus('El expediente no está en modo de edición.', false);
   });
 
   const adminDetailToggleStatus = document.querySelector('#admin-detail-toggle-status');
