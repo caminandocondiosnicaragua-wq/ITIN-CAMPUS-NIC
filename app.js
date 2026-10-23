@@ -1263,6 +1263,24 @@
     return adminReadCache.get(key);
   }
 
+  async function callAdminAction(payload) {
+    if (!adminCredential) throw new Error('La sesión administrativa expiró. Inicia sesión de nuevo.');
+    const response = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ ...payload, credential: adminCredential }),
+      redirect: 'follow'
+    });
+    const raw = await response.text();
+    let result;
+    try { result = JSON.parse(raw); }
+    catch (_) { throw new Error('La API no devolvió JSON válido al guardar.'); }
+    if (!response.ok || result.ok !== true) {
+      throw new Error(result.error || result.mensaje || 'La API rechazó la operación.');
+    }
+    return result;
+  }
+
   async function adminConsulta(tipo, forceRefresh) {
     const loader = async () => {
       const response = await fetch(API_URL, {
