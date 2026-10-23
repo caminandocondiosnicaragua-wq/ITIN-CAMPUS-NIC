@@ -1401,7 +1401,7 @@
           row.appendChild(pending);
         }
         uploadSection.appendChild(row);
-;
+      });
       adminDetailContent.appendChild(uploadSection);
     } else {
       adminDetailContent.appendChild(makeDocumentSection('Página 2 · Documentos', null, ['CedulaFrente','CedulaReverso','Fotoperfil','CartaPastoral','SubirDiploma']));
