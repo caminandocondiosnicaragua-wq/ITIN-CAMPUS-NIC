@@ -676,3 +676,26 @@ button, .button {
   .campus-slide-copy h2 { font-size: clamp(34px, 9vw, 46px); }
   .campus-slide-cta { font-size: 12px; padding: 11px 15px; }
 }
+
+
+/* Ajuste solicitado: banner a todo el ancho, con menos altura */
+@media (min-width: 651px) {
+  .hero {
+    height: clamp(440px, 68vh, 650px);
+    min-height: 0;
+  }
+  .campus-carousel {
+    height: 100%;
+    min-height: 0;
+  }
+  .campus-slide-copy {
+    bottom: clamp(82px, 10vh, 118px);
+  }
+}
+@media (max-width: 650px) {
+  .hero {
+    height: 68svh;
+    min-height: 490px;
+    max-height: 650px;
+  }
+}
