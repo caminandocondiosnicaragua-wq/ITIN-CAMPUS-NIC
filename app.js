@@ -1028,6 +1028,7 @@
     return '';
   }
 
+  const adminDetailDialog = document.querySelector('.admin-detail-dialog');
   const adminProfilePhotoFrame = document.querySelector('#admin-profile-photo-frame');
   const adminProfilePhotoInput = document.querySelector('#admin-profile-photo-input');
   const adminProfilePhotoStatus = document.querySelector('#admin-profile-photo-status');
@@ -1495,6 +1496,7 @@
     if (!adminCredential) { setAdminDataStatus('Inicia sesión de nuevo para consultar expedientes.', true); return; }
     activeAdminStudent = student;
     adminDetailEditing = false;
+    if (adminDetailDialog) adminDetailDialog.classList.remove('is-editing');
     pendingDocumentUploads.clear();
     if (adminDetailEdit) adminDetailEdit.disabled = false;
     if (adminDetailOverlay) adminDetailOverlay.hidden = false;
@@ -1557,6 +1559,7 @@
     const existing = content.querySelector('.admin-edit-actions');
     if (existing) return;
     adminDetailEditing = true;
+    if (adminDetailDialog) adminDetailDialog.classList.add('is-editing');
     renderAdminStudentDetail(activeAdminStudent);
     let changed = 0;
     content.querySelectorAll('.admin-detail-fields > div').forEach(wrap => {
@@ -1596,7 +1599,7 @@
     content.prepend(actions);
     adminDetailEdit.disabled = true;
     showDetailStatus('Modo de edición activo. Modifica los campos y guarda cuando termines.', false);
-    cancel.addEventListener('click', async () => { adminDetailEditing=false; pendingDocumentUploads.clear(); adminDetailEdit.disabled = false; await openAdminStudentDetail(activeAdminStudent); adminDetailEdit.disabled = false; });
+    cancel.addEventListener('click', async () => { adminDetailEditing=false; if (adminDetailDialog) adminDetailDialog.classList.remove('is-editing'); pendingDocumentUploads.clear(); adminDetailEdit.disabled = false; await openAdminStudentDetail(activeAdminStudent); adminDetailEdit.disabled = false; });
     save.addEventListener('click', async () => {
       const cambios = {};
       actions.parentElement.querySelectorAll('.admin-inline-edit-input').forEach(input => {
@@ -1643,6 +1646,8 @@
           }
         }
         pendingDocumentUploads.clear();
+        adminDetailEditing = false;
+        if (adminDetailDialog) adminDetailDialog.classList.remove('is-editing');
         invalidateAdminReadCache('estudiantes','documentos');
         await loadAdminStudents(true);
         const refreshed = adminStudents.find(item => recordId(item) === recordId(activeAdminStudent)) || activeAdminStudent;
