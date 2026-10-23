@@ -46,7 +46,28 @@
 
 
 
-  function showPage(page) {
+  const programPicker = document.getElementById('application-program-picker');
+  const applicationLayout = document.getElementById('application-layout');
+
+  function updateApplicationEntry() {
+    if (!programPicker || !applicationLayout) return;
+    const selected = Boolean(programSelect && programSelect.value);
+    programPicker.hidden = selected;
+    applicationLayout.hidden = !selected;
+  }
+
+  document.querySelectorAll('[data-choose-program]').forEach(button => {
+    button.addEventListener('click', () => {
+      programSelect.value = button.dataset.chooseProgram;
+      updateInterviewForProgram();
+      updateApplicationEntry();
+      currentStep = 0;
+      updateStep();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  });
+
+    function showPage(page) {
     const validPage = sections.some(section => section.dataset.section === page) ? page : 'inicio';
     sections.forEach(section => {
       const active = section.dataset.section === validPage;
@@ -56,7 +77,7 @@
     navLinks.forEach(link => link.classList.toggle('active', link.dataset.page === validPage));
     menu.classList.remove('open');
     menuToggle.setAttribute('aria-expanded', 'false');
-    if (validPage === 'solicitud') updateStep();
+    if (validPage === 'solicitud') { updateApplicationEntry(); if (programSelect.value) updateStep(); }
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
