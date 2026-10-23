@@ -12,6 +12,23 @@
   <script src="https://accounts.google.com/gsi/client" defer></script>
   <script src="app.js?v=20261023b" defer></script>
   <script src="hero-carousel.js?v=20261023c" defer></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const promoVideo = document.querySelector('.itin-promo-player');
+    if (!promoVideo || !('IntersectionObserver' in window)) return;
+    const observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting && entry.intersectionRatio >= 0.55) {
+          const playAttempt = promoVideo.play();
+          if (playAttempt && typeof playAttempt.catch === 'function') playAttempt.catch(function () {});
+        } else {
+          promoVideo.pause();
+        }
+      });
+    }, { threshold: [0, 0.55, 1] });
+    observer.observe(promoVideo);
+  });
+</script>
 </head>
 <body>
 <header class="site-header">
@@ -89,6 +106,12 @@
           <li><span class="itin-check" aria-hidden="true">✓</span><span>Un ambiente de compañerismo y aprendizaje profundo.</span></li>
         </ul>
       </div>
+    </div>
+    <div class="itin-promo-video" aria-label="Video de presentación de ITIN">
+      <video class="itin-promo-player" controls muted playsinline preload="metadata" poster="" aria-label="Publicidad institucional de ITIN">
+        <source src="assets/videos/Publicidad%20Itin.mp4" type="video/mp4">
+        Tu navegador no puede reproducir este video.
+      </video>
     </div>
     <div class="program-grid">
       <article class="program-card"><span class="program-number">01</span><div class="program-icon">✧</div><h3>Bachillerato en Teología</h3><p>Construye una base sólida en el estudio de la Biblia y los fundamentos de la teología cristiana.</p><a href="#solicitud" class="text-link" data-program="Bachillerato">Iniciar solicitud <span>→</span></a></article>
