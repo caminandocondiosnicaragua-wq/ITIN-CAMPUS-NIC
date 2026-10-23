@@ -918,6 +918,8 @@
   const adminDetailPrint = document.querySelector('#admin-detail-print');
   let activeAdminStudent = null;
   let activeAdminDocuments = [];
+  let adminDetailEditing = false;
+  const pendingDocumentUploads = new Map();
   let activeAdminAnswers = [];
   let activeAdminQuestions = [];
 
@@ -1317,7 +1319,7 @@
       if (actual && !orderedNames.includes(actual)) orderedNames.push(actual);
     });
     Object.keys(studentProps).forEach(name => { if (!orderedNames.includes(name)) orderedNames.push(name); });
-    const rows = orderedNames.map(name => [name, detailDisplayValue(studentProps[name]), studentProps[name]]);
+    const rows = orderedNames.filter(name => !/^(IdE|IdEstudiante)$/i.test(name)).map(name => [name, detailDisplayValue(studentProps[name]), studentProps[name]]);
     const programName = fieldValue(student, ['Programa','Programa solicitado','ProgramaAcademico','Carrera']);
     if (programName) rows.unshift(['Programa solicitado', programName]);
     adminDetailContent.appendChild(makeDetailSection('Página 1 · Datos del estudiante e información de la iglesia', rows, 'print-student-page'));
@@ -1326,45 +1328,80 @@
     const docRecord = matchingDocs[0] || null;
     if (docRecord) {
       const docProps = getProperties(docRecord);
-      const docRows = Object.keys(docProps).map(name => [name, detailDisplayValue(docProps[name]), docProps[name]]);
+      const fileFields = ['CedulaFrente','CedulaReverso','Fotoperfil','CartaPastoral','SubirDiploma'];
+      const hiddenDocumentFields = /^(NombreCompleto|IdDocumento|IdD|IdD[0-9]*|IdEstudiante|IdE|IdRep_Entrevista)$/i;
+      const autoDocumentFields = /^(FechaRevision|FechadeCarga|FechaCarga|FechaRevisionDocumento)$/i;
+      const docRows = Object.keys(docProps).filter(name => !hiddenDocumentFields.test(name) && !autoDocumentFields.test(name) && !fileFields.includes(name)).map(name => [name, detailDisplayValue(docProps[name]), docProps[name]]);
       adminDetailContent.appendChild(makeDetailSection('Página 2 · Todos los campos de DOCUMENTOS', docRows, 'print-documents-page', 'DOCUMENTOS'));
       const uploadSection = document.createElement('section');
       uploadSection.className = 'admin-detail-page admin-document-upload-section';
       const uploadHeading = document.createElement('h4');
       uploadHeading.textContent = 'Archivos de DOCUMENTOS';
       uploadSection.appendChild(uploadHeading);
-      ['CedulaFrente','CedulaReverso','Fotoperfil','CartaPastoral','SubirDiploma'].forEach(field => {
+      fileFields.forEach(field => {
         if (!Object.prototype.hasOwnProperty.call(docProps, field)) return;
         const row = document.createElement('div');
         row.className = 'admin-document-upload-row';
-        const label = document.createElement('label');
-        label.textContent = field + (docProps[field] && Array.isArray(docProps[field].files) && docProps[field].files.length ? ' · Reemplazar archivo' : ' · Cargar archivo');
-        const picker = document.createElement('input');
-        picker.type = 'file';
-        picker.accept = 'image/jpeg,image/png,application/pdf';
-        picker.dataset.documentField = field;
-        picker.disabled = false;
-        label.appendChild(picker);
-        const status = document.createElement('small');
-        status.textContent = docProps[field] && Array.isArray(docProps[field].files) && docProps[field].files.length ? docProps[field].files.map(f => f.name).join(', ') : 'Sin archivo adjunto';
-        row.append(label, status);
+        const label = document.createElement('strong');
+        label.textContent = field;
+        row.appendChild(label);
+        const existingFiles = notionFiles(docProps[field]);
+        if (existingFiles.length) {
+          const filesList = document.createElement('div');
+          filesList.className = 'admin-document-existing-files';
+          existingFiles.forEach((file,index) => {
+            const url = notionFileUrl(file);
+            const link = document.createElement('a');
+            link.textContent = file.name || ('Archivo ' + (index + 1));
+            if (url) { link.href=url; link.target='_blank'; link.rel='noopener'; }
+            else link.href='#';
+            filesList.appendChild(link);
+            if (adminDetailEditing) {
+              const remove = document.createElement('button');
+              remove.type='button';
+              remove.className='button button-quiet admin-document-remove';
+              remove.textContent='Quitar';
+              remove.addEventListener('click', () => {
+                const key = recordId(docRecord) + ':' + field;
+                const current = pendingDocumentUploads.get(key) || { file:null, remove:false };
+                current.remove = !current.remove;
+                pendingDocumentUploads.set(key,current);
+                remove.textContent = current.remove ? 'Se quitará al guardar · Deshacer' : 'Quitar';
+                remove.classList.toggle('is-danger',current.remove);
+                showDetailStatus(current.remove ? 'El archivo quedó marcado para quitarse al guardar.' : 'Se canceló la eliminación pendiente.',false);
+              });
+              filesList.appendChild(remove);
+            }
+          });
+          row.appendChild(filesList);
+        } else {
+          const empty = document.createElement('p');
+          empty.textContent='Sin archivo adjunto';
+          row.appendChild(empty);
+        }
+        if (adminDetailEditing) {
+          const picker = document.createElement('input');
+          picker.type='file'; picker.accept='image/jpeg,image/png,application/pdf';
+          picker.setAttribute('aria-label', field + ' · subir o reemplazar');
+          picker.addEventListener('change', () => {
+            const selected=picker.files && picker.files[0];
+            if (!selected) return;
+            if (selected.size > 4*1024*1024) { showDetailStatus('El archivo supera el límite de 4 MB.',true); picker.value=''; return; }
+            if (!['image/jpeg','image/png','application/pdf'].includes(selected.type)) { showDetailStatus('Formato no permitido. Usa JPG, PNG o PDF.',true); picker.value=''; return; }
+            const key=recordId(docRecord)+':'+field;
+            const current=pendingDocumentUploads.get(key) || {file:null,remove:false};
+            current.file=selected; current.remove=false;
+            pendingDocumentUploads.set(key,current);
+            showDetailStatus('Archivo seleccionado: '+selected.name+'. Pulsa Guardar cambios para enviarlo a Notion.',false);
+          });
+          row.appendChild(picker);
+          const pending = document.createElement('small');
+          pending.className='admin-document-pending';
+          pending.dataset.pendingField=field;
+          row.appendChild(pending);
+        }
         uploadSection.appendChild(row);
-        picker.addEventListener('change', async () => {
-          const selected = picker.files && picker.files[0];
-          if (!selected) return;
-          if (selected.size > 4 * 1024 * 1024) { showDetailStatus('El archivo supera el límite de 4 MB.', true); picker.value=''; return; }
-          if (!['image/jpeg','image/png','application/pdf'].includes(selected.type)) { showDetailStatus('Formato no permitido. Usa JPG, PNG o PDF.', true); picker.value=''; return; }
-          if (!window.confirm((status.textContent === 'Sin archivo adjunto' ? 'Se cargará un archivo en ' : 'Se reemplazará el archivo de ') + field + '. ¿Continuar?')) { picker.value=''; return; }
-          picker.disabled = true;
-          showDetailStatus('Subiendo archivo a Notion…', false);
-          try {
-            const result = await callAdminAction({ accion:'adminReemplazarDocumento', id:recordId(docRecord), campo:field, archivo:{nombre:selected.name,tipo:selected.type,base64:await fileToBase64(selected)} });
-            invalidateAdminReadCache('documentos');
-            showDetailStatus(result.mensaje || 'Archivo guardado en Notion.', false);
-            await openAdminStudentDetail(activeAdminStudent);
-          } catch(error) { picker.disabled=false; showDetailStatus(error.message || 'No se pudo guardar el archivo.', true); }
-        });
-      });
+;
       adminDetailContent.appendChild(uploadSection);
     } else {
       adminDetailContent.appendChild(makeDocumentSection('Página 2 · Documentos', null, ['CedulaFrente','CedulaReverso','Fotoperfil','CartaPastoral','SubirDiploma']));
@@ -1451,6 +1488,8 @@
   async function openAdminStudentDetail(student) {
     if (!adminCredential) { setAdminDataStatus('Inicia sesión de nuevo para consultar expedientes.', true); return; }
     activeAdminStudent = student;
+    adminDetailEditing = false;
+    pendingDocumentUploads.clear();
     if (adminDetailEdit) adminDetailEdit.disabled = false;
     if (adminDetailOverlay) adminDetailOverlay.hidden = false;
     if (adminDetailTitle) adminDetailTitle.textContent = 'Expediente · ' + (studentField(student, 'nombre') || 'Estudiante');
@@ -1511,6 +1550,8 @@
     if (!content) return;
     const existing = content.querySelector('.admin-edit-actions');
     if (existing) return;
+    adminDetailEditing = true;
+    renderAdminStudentDetail(activeAdminStudent);
     let changed = 0;
     content.querySelectorAll('.admin-detail-fields > div').forEach(wrap => {
       const field = wrap.dataset.property;
@@ -1549,7 +1590,7 @@
     content.prepend(actions);
     adminDetailEdit.disabled = true;
     showDetailStatus('Modo de edición activo. Modifica los campos y guarda cuando termines.', false);
-    cancel.addEventListener('click', async () => { adminDetailEdit.disabled = false; await openAdminStudentDetail(activeAdminStudent); adminDetailEdit.disabled = false; });
+    cancel.addEventListener('click', async () => { adminDetailEditing=false; pendingDocumentUploads.clear(); adminDetailEdit.disabled = false; await openAdminStudentDetail(activeAdminStudent); adminDetailEdit.disabled = false; });
     save.addEventListener('click', async () => {
       const cambios = {};
       actions.parentElement.querySelectorAll('.admin-inline-edit-input').forEach(input => {
@@ -1565,27 +1606,43 @@
         }
       });
       const bases = Object.keys(cambios).filter(base => Object.keys(cambios[base]).length);
-      if (!bases.length) {
-        showDetailStatus('No hay cambios que guardar.', false);
+      const pendingCount = pendingDocumentUploads.size;
+      if (!bases.length && !pendingCount) {
+        showDetailStatus('No hay cambios ni archivos pendientes de guardar.', false);
         adminDetailEdit.disabled = false;
         return;
       }
-      const total = bases.reduce((n,base) => n + Object.keys(cambios[base]).length, 0);
-      if (!window.confirm('Se actualizarán ' + total + ' campo(s) en Notion. ¿Continuar?')) return;
+      const total = bases.reduce((n,base) => n + Object.keys(cambios[base]).length, 0) + pendingCount;
+      if (!window.confirm('Se guardarán ' + total + ' cambio(s), incluidos archivos seleccionados, en Notion. ¿Continuar?')) return;
       save.disabled = true; cancel.disabled = true;
       showDetailStatus('Guardando cambios en Notion…', false);
       try {
+        let savedCount = 0;
         for (const base of bases) {
-          const id = base === 'ESTUDIANTE' ? recordId(activeAdminStudent) : (activeAdminDocuments.find(doc => belongsToStudent(doc, activeAdminStudent)) && recordId(activeAdminDocuments.find(doc => belongsToStudent(doc, activeAdminStudent))));
+          const relatedDoc = activeAdminDocuments.find(doc => belongsToStudent(doc, activeAdminStudent));
+          const id = base === 'ESTUDIANTE' ? recordId(activeAdminStudent) : (relatedDoc && recordId(relatedDoc));
           if (!id) throw new Error('No se encontró el registro relacionado de ' + base + '.');
           await callAdminAction({ accion:'adminActualizarRegistro', base, id, propiedades:cambios[base] });
+          savedCount += Object.keys(cambios[base]).length;
         }
+        for (const [key, pending] of pendingDocumentUploads.entries()) {
+          const [docId, field] = key.split(':');
+          if (pending.file) {
+            await callAdminAction({accion:'adminReemplazarDocumento',id:docId,campo:field,archivo:{nombre:pending.file.name,tipo:pending.file.type,base64:await fileToBase64(pending.file)}});
+            savedCount++;
+          }
+          if (pending.remove) {
+            await callAdminAction({accion:'adminEliminarArchivoDocumento',id:docId,campo:field});
+            savedCount++;
+          }
+        }
+        pendingDocumentUploads.clear();
         invalidateAdminReadCache('estudiantes','documentos');
         await loadAdminStudents(true);
         const refreshed = adminStudents.find(item => recordId(item) === recordId(activeAdminStudent)) || activeAdminStudent;
         adminDetailEdit.disabled = false;
         await openAdminStudentDetail(refreshed);
-        showDetailStatus('Cambios guardados correctamente en Notion.', false);
+        showDetailStatus('Se guardaron correctamente ' + savedCount + ' cambio(s) en Notion.', false);
       } catch (error) {
         save.disabled = false; cancel.disabled = false; adminDetailEdit.disabled = false;
         showDetailStatus(error.message || 'No se pudieron guardar los cambios.', true);
