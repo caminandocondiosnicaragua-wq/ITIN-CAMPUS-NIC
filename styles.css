@@ -521,3 +521,9 @@ button, .button {
 /* La foto de perfil solo se puede seleccionar en modo de edición */
 .admin-detail-dialog:not(.is-editing) .admin-profile-photo-controls{display:none!important}
 .admin-detail-dialog.is-editing .admin-profile-photo-controls{display:block}
+
+/* Vista previa visual de archivos adjuntos en el expediente */
+.admin-document-existing-files{display:flex;flex-wrap:wrap;align-items:flex-start;gap:12px}
+.admin-document-preview-link{display:flex;flex-direction:column;align-items:flex-start;gap:6px;max-width:280px;overflow-wrap:anywhere}
+.admin-document-preview-image{display:block;width:auto;max-width:260px;height:auto;max-height:190px;object-fit:contain;border:1px solid var(--line,#d8cfbd);border-radius:8px;background:#fff;padding:4px}
+.admin-document-preview-image.is-unavailable{display:none}
