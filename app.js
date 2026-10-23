@@ -1503,7 +1503,10 @@
   const adminDetailEdit = document.querySelector('#admin-detail-edit');
   if (adminDetailEdit) adminDetailEdit.addEventListener('click', () => {
     if (!activeAdminStudent) return showDetailStatus('Selecciona primero un expediente.', true);
-    const editableFields = Object.keys(getProperties(activeAdminStudent)).filter(name => !/^(idE|idD|idDocumento|idEstudiante|idRep_Entrevista)$/i.test(name));
+    const protectedField = name => /^(idE|idD|idDocumento|idEstudiante|idRep_Entrevista)$/i.test(name);
+    const studentFields = new Set(Object.keys(getProperties(activeAdminStudent)));
+    const relatedDocument = activeAdminDocuments.find(doc => belongsToStudent(doc, activeAdminStudent));
+    const documentFields = new Set(relatedDocument ? Object.keys(getProperties(relatedDocument)) : []);
     const content = document.querySelector('#admin-detail-content');
     if (!content) return;
     const existing = content.querySelector('.admin-edit-actions');
@@ -1511,7 +1514,9 @@
     let changed = 0;
     content.querySelectorAll('.admin-detail-fields > div').forEach(wrap => {
       const field = wrap.dataset.property;
-      if (!editableFields.includes(field)) return;
+      const base = wrap.dataset.base || 'ESTUDIANTE';
+      const allowedFields = base === 'DOCUMENTOS' ? documentFields : studentFields;
+      if (!allowedFields.has(field) || protectedField(field)) return;
       const dd = wrap.querySelector('dd');
       if (!dd || dd.querySelector('input')) return;
       const type = dd.dataset.propertyType || '';
