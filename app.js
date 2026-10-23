@@ -1127,12 +1127,30 @@
     section.appendChild(heading);
     const dl = document.createElement('dl');
     dl.className = 'admin-detail-fields';
-    rows.forEach(([label, value]) => {
+    rows.forEach(([label, value, rawProperty]) => {
       const wrap = document.createElement('div');
       wrap.dataset.property = label;
       const dt = document.createElement('dt'); dt.textContent = label;
-      const dd = document.createElement('dd'); dd.textContent = value || '—';
-      dd.dataset.value = value || '';
+      const dd = document.createElement('dd');
+      const type = rawProperty && rawProperty.type;
+      let normalized = value == null ? '' : String(value);
+      if (type === 'checkbox') {
+        const checkboxValue = rawProperty.checkbox === true || rawProperty.value === true;
+        dd.dataset.value = String(checkboxValue);
+        const indicator = document.createElement('span');
+        indicator.className = 'admin-readonly-checkbox' + (checkboxValue ? ' is-checked' : '');
+        indicator.textContent = checkboxValue ? '☑ Sí' : '☐ No';
+        dd.appendChild(indicator);
+      } else {
+        dd.textContent = normalized || '—';
+        dd.dataset.value = normalized;
+      }
+      if (rawProperty && type) dd.dataset.propertyType = type;
+      if (rawProperty && ['select','status'].includes(type)) {
+        const selected = rawProperty[type] || {};
+        dd.dataset.selected = selected.name || '';
+        dd.dataset.options = JSON.stringify((rawProperty._options || []).map(option => option.name));
+      }
       wrap.append(dt, dd); dl.appendChild(wrap);
     });
     section.appendChild(dl);
@@ -1280,7 +1298,7 @@
       if (actual && !orderedNames.includes(actual)) orderedNames.push(actual);
     });
     Object.keys(studentProps).forEach(name => { if (!orderedNames.includes(name)) orderedNames.push(name); });
-    const rows = orderedNames.map(name => [name, detailDisplayValue(studentProps[name])]).filter(([,value]) => value);
+    const rows = orderedNames.map(name => [name, detailDisplayValue(studentProps[name]), studentProps[name]]);
     const programName = fieldValue(student, ['Programa','Programa solicitado','ProgramaAcademico','Carrera']);
     if (programName) rows.unshift(['Programa solicitado', programName]);
     adminDetailContent.appendChild(makeDetailSection('Página 1 · Datos del estudiante e información de la iglesia', rows, 'print-student-page'));
@@ -1429,7 +1447,7 @@
   const adminDetailEdit = document.querySelector('#admin-detail-edit');
   if (adminDetailEdit) adminDetailEdit.addEventListener('click', () => {
     if (!activeAdminStudent) return showDetailStatus('Selecciona primero un expediente.', true);
-    const editableFields = ['NombreCompleto','Cedula','FechaNac','Edad','Correo','Celular','Departamento','Municipio','Dirección','Direccion','EstadoCivil','Profesión','Profesion','Escolaridad','GradoAprobado','Cargo','Asociación','Asociacion','NombrePastor','Iglesia','Programa','FechaEntrevista'];
+    const editableFields = Object.keys(getProperties(activeAdminStudent));
     const content = document.querySelector('#admin-detail-content');
     if (!content) return;
     const existing = content.querySelector('.admin-edit-actions');
@@ -1440,12 +1458,22 @@
       if (!editableFields.includes(field)) return;
       const dd = wrap.querySelector('dd');
       if (!dd || dd.querySelector('input')) return;
-      const input = document.createElement('input');
-      input.type = /fecha/i.test(field) ? 'date' : 'text';
+      const type = dd.dataset.propertyType || '';
+      const input = document.createElement(type === 'checkbox' ? 'input' : 'input');
       input.className = 'admin-inline-edit-input';
       input.dataset.field = field;
-      input.value = dd.dataset.value || '';
+      input.dataset.propertyType = type;
       input.setAttribute('aria-label', field);
+      if (type === 'checkbox') {
+        input.type = 'checkbox';
+        input.checked = dd.dataset.value === 'true';
+      } else if (type === 'date' || /fecha/i.test(field)) {
+        input.type = 'date';
+        input.value = (dd.dataset.value || '').slice(0,10);
+      } else {
+        input.type = 'text';
+        input.value = dd.dataset.value || '';
+      }
       dd.replaceChildren(input);
       changed++;
     });
@@ -1465,7 +1493,9 @@
       const propiedades = {};
       actions.parentElement.querySelectorAll('.admin-inline-edit-input').forEach(input => {
         const original = input.closest('dd').dataset.value || '';
-        if (input.value.trim() !== original) propiedades[input.dataset.field] = input.value.trim();
+        const type = input.dataset.propertyType || '';
+        const value = type === 'checkbox' ? input.checked : input.value.trim();
+        if (String(value) !== original) propiedades[input.dataset.field] = value;
       });
       if (!Object.keys(propiedades).length) {
         showDetailStatus('No hay cambios que guardar.', false);
