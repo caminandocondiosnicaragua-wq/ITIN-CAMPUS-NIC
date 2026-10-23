@@ -1465,7 +1465,7 @@
   const adminDetailEdit = document.querySelector('#admin-detail-edit');
   if (adminDetailEdit) adminDetailEdit.addEventListener('click', () => {
     if (!activeAdminStudent) return showDetailStatus('Selecciona primero un expediente.', true);
-    const editableFields = Object.keys(getProperties(activeAdminStudent));
+    const editableFields = Object.keys(getProperties(activeAdminStudent)).filter(name => !/^(idE|idD|idDocumento|idEstudiante|idRep_Entrevista)$/i.test(name));
     const content = document.querySelector('#admin-detail-content');
     if (!content) return;
     const existing = content.querySelector('.admin-edit-actions');
@@ -1533,6 +1533,13 @@
         showDetailStatus(error.message || 'No se pudieron guardar los cambios.', true);
       }
     });
+  });
+
+  const adminDetailSaveToolbar = document.querySelector('#admin-detail-save');
+  if (adminDetailSaveToolbar) adminDetailSaveToolbar.addEventListener('click', () => {
+    const inlineSave = adminDetailContent && adminDetailContent.querySelector('.admin-edit-actions .button-primary');
+    if (inlineSave) inlineSave.click();
+    else showDetailStatus('Pulsa Editar antes de guardar cambios.', true);
   });
 
   const adminDetailToggleStatus = document.querySelector('#admin-detail-toggle-status');
