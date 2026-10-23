@@ -713,3 +713,15 @@ button, .button {
 .location-map-wrap iframe { display: block; width: 100%; height: 430px; border: 0; }
 @media(max-width:800px) { .location-inner { grid-template-columns: 1fr; } .location-map-wrap { min-height: 330px; } .location-map-wrap iframe { height: 350px; } }
 @media(max-width:650px) { .campus-slide-cta-map { margin-top: 9px; } }
+
+
+/* Presentación institucional integrada al encabezado de oferta académica */
+.programs-section .section-heading { max-width: 920px; }
+.programs-section .section-heading > h2 { max-width: 850px; margin-left: auto; margin-right: auto; }
+.programs-section .section-heading > p:not(.eyebrow) { max-width: 810px; margin-left: auto; margin-right: auto; line-height: 1.8; }
+.itin-why-study { max-width: 800px; margin: 30px auto 0; padding: 24px clamp(18px,3vw,34px); border: 1px solid #e4d7c2; border-radius: 18px; background: rgba(255,255,255,.52); text-align: left; }
+.itin-why-study h3 { margin: 0 0 18px; color: #293128; font-family: Georgia,serif; font-size: clamp(21px,2.5vw,27px); font-weight: 600; text-align: center; }
+.itin-why-study ul { display: grid; gap: 13px; margin: 0; padding: 0; list-style: none; }
+.itin-why-study li { display: grid; grid-template-columns: 27px minmax(0,1fr); gap: 12px; align-items: center; color: #49483f; font-size: clamp(14px,1.35vw,16px); font-weight: 500; line-height: 1.6; }
+.itin-check { display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: #3caa57; color: #fff; font-size: 17px; font-weight: 800; box-shadow: 0 2px 5px #246a3430; }
+@media(max-width:600px) { .itin-why-study { margin-top: 24px; padding: 20px 16px; } .itin-why-study li { grid-template-columns: 25px minmax(0,1fr); gap: 10px; } .itin-check { width: 24px; height: 24px; } }
