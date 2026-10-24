@@ -848,3 +848,43 @@ button, .button {
 .legal-panel .legal-note{padding-top:13px;border-top:1px solid var(--line);font-size:11px;line-height:1.75}
 @media(max-width:800px){.about-legal{grid-template-columns:1fr;margin-left:20px;margin-right:20px}}
 @media(max-width:560px){.legal-panel{padding:23px}.legal-panel h2{font-size:27px}}
+
+/* Legal: olivo profundo con tipografía clara y destello de luz sutil */
+.about-legal .legal-panel{
+  position:relative;
+  isolation:isolate;
+  overflow:hidden;
+  color:#f7f3e8;
+  background:
+    radial-gradient(ellipse at 8% 0%,rgba(221,198,137,.22) 0%,rgba(221,198,137,0) 42%),
+    linear-gradient(145deg,#30392d 0%,#252e25 58%,#202820 100%);
+  border:1px solid rgba(218,196,143,.55);
+  box-shadow:0 18px 42px rgba(35,43,32,.18),inset 0 1px 0 rgba(255,247,219,.12);
+}
+.about-legal .legal-panel::before{
+  content:"";
+  position:absolute;
+  z-index:-1;
+  top:-35%;
+  left:-55%;
+  width:78%;
+  height:170%;
+  pointer-events:none;
+  transform:rotate(19deg);
+  background:linear-gradient(90deg,transparent 0%,rgba(255,245,207,.035) 32%,rgba(255,245,207,.13) 48%,rgba(255,245,207,.035) 62%,transparent 100%);
+}
+.about-legal .legal-panel .about-panel-icon{
+  color:#f8edcc;
+  background:linear-gradient(135deg,#81754c,#bba46a);
+  box-shadow:0 0 24px rgba(224,201,139,.15);
+}
+.about-legal .legal-panel .eyebrow{color:#d9c38e}
+.about-legal .legal-panel h2{color:#fff8e8}
+.about-legal .legal-panel p:not(.eyebrow),
+.about-legal .legal-panel ul{color:#e2e5d9}
+.about-legal .legal-panel li::marker{color:#d8c18b}
+.about-legal .legal-panel .legal-note{border-top-color:rgba(226,213,177,.3);color:#f0e7d2}
+@media(hover:hover){
+  .about-legal .legal-panel{transition:transform .25s ease,box-shadow .25s ease,border-color .25s ease}
+  .about-legal .legal-panel:hover{transform:translateY(-3px);border-color:#d8c18b;box-shadow:0 22px 48px rgba(35,43,32,.25),0 0 28px rgba(218,196,143,.13),inset 0 1px 0 rgba(255,247,219,.15)}
+}
