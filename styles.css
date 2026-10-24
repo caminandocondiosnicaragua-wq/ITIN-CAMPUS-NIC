@@ -903,3 +903,15 @@ button, .button {
 .about-logo-emblem:focus-within .about-principles{box-shadow:0 0 0 5px rgba(255,250,235,.42),0 0 25px rgba(255,241,191,.35),0 8px 20px rgba(35,43,32,.22)}
 @media(max-width:800px){.about-logo-emblem{min-height:330px}.about-logo-emblem .about-institute-logo{width:175px;max-height:175px}}
 @media(prefers-reduced-motion:reduce){.about-logo-emblem,.about-logo-emblem .about-institute-logo,.about-logo-emblem .about-principles{transition:none}}
+
+/* Corrección de composición: las tres palabras quedan dentro del círculo olivo */
+.about-logo-emblem{gap:0}
+.about-logo-emblem .about-institute-logo{width:clamp(175px,19vw,220px);max-height:220px;margin:0 auto 17px;position:relative;z-index:1}
+.about-logo-emblem .about-principles{position:relative;z-index:2;width:132px;height:132px;flex:0 0 132px;box-sizing:border-box;padding:12px 8px;margin:0 auto 13px;gap:7px;background:radial-gradient(circle at 32% 20%,#46543d 0%,#303b2d 54%,#20281f 100%);color:#fff8e5;font-size:16px;font-weight:600;line-height:1.15;text-shadow:0 1px 2px rgba(0,0,0,.35);border:2px solid #cdb779;box-shadow:0 0 0 4px rgba(255,250,235,.45),0 8px 20px rgba(35,43,32,.24),inset 0 1px 0 rgba(255,255,255,.18)}
+.about-logo-emblem .about-principles span{width:100%;text-align:center;white-space:nowrap}
+.about-logo-emblem>small{position:relative;z-index:1;margin-top:0}
+@media(hover:hover){
+ .about-logo-emblem:hover{background:linear-gradient(145deg,#eee5d0,#d3c096)}
+ .about-logo-emblem:hover .about-principles{background:radial-gradient(circle at 32% 20%,#526247 0%,#34412f 54%,#20281f 100%);transform:scale(1.045);box-shadow:0 0 0 5px rgba(255,250,235,.48),0 0 26px rgba(224,201,139,.3),0 10px 23px rgba(35,43,32,.25),inset 0 1px 0 rgba(255,255,255,.2)}
+}
+@media(max-width:800px){.about-logo-emblem .about-institute-logo{width:185px;max-height:185px}.about-logo-emblem .about-principles{width:128px;height:128px;flex-basis:128px;font-size:15px}}
