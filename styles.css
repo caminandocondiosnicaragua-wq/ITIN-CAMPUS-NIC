@@ -888,3 +888,18 @@ button, .button {
   .about-legal .legal-panel{transition:transform .25s ease,box-shadow .25s ease,border-color .25s ease}
   .about-legal .legal-panel:hover{transform:translateY(-3px);border-color:#d8c18b;box-shadow:0 22px 48px rgba(35,43,32,.25),0 0 28px rgba(218,196,143,.13),inset 0 1px 0 rgba(255,247,219,.15)}
 }
+
+/* Emblema interactivo exclusivo de Acerca de */
+.about-logo-emblem{gap:0;min-height:350px;padding:26px 24px 22px;transition:background .3s ease,box-shadow .3s ease,transform .3s ease}
+.about-logo-emblem .about-institute-logo{display:block;width:clamp(150px,17vw,205px);height:auto;max-height:205px;object-fit:contain;margin:0 auto 16px;filter:drop-shadow(0 7px 8px rgba(43,39,26,.22));transform:translateY(0) scale(1);transform-origin:center;transition:transform .35s cubic-bezier(.2,.8,.2,1),filter .35s ease}
+.about-logo-emblem .about-principles{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;width:112px;height:112px;flex:0 0 112px;margin:0 auto 12px;border:1px solid rgba(226,207,155,.85);border-radius:50%;background:radial-gradient(circle at 32% 22%,#46523d 0%,#303a2d 52%,#20281f 100%);box-shadow:0 0 0 4px rgba(255,250,235,.36),0 8px 20px rgba(35,43,32,.22),inset 0 1px 0 rgba(255,255,255,.18);color:#fff7df;font-family:"Playfair Display",serif;font-size:14px;line-height:1.2;letter-spacing:.035em;transition:box-shadow .35s ease,transform .35s ease,background .35s ease}
+.about-logo-emblem .about-principles span{display:block}
+.about-logo-emblem>small{margin-top:2px}
+@media(hover:hover){
+  .about-logo-emblem:hover{background:linear-gradient(145deg,#eee5d0,#d3c096);box-shadow:0 16px 34px rgba(67,58,37,.13);transform:translateY(-3px)}
+  .about-logo-emblem:hover .about-institute-logo{transform:translateY(-3px) scale(1.055);filter:drop-shadow(0 11px 11px rgba(43,39,26,.3))}
+  .about-logo-emblem:hover .about-principles{transform:scale(1.06);box-shadow:0 0 0 5px rgba(255,250,235,.42),0 0 27px rgba(255,241,191,.42),0 10px 23px rgba(35,43,32,.25),inset 0 1px 0 rgba(255,255,255,.2)}
+}
+.about-logo-emblem:focus-within .about-principles{box-shadow:0 0 0 5px rgba(255,250,235,.42),0 0 25px rgba(255,241,191,.35),0 8px 20px rgba(35,43,32,.22)}
+@media(max-width:800px){.about-logo-emblem{min-height:330px}.about-logo-emblem .about-institute-logo{width:175px;max-height:175px}}
+@media(prefers-reduced-motion:reduce){.about-logo-emblem,.about-logo-emblem .about-institute-logo,.about-logo-emblem .about-principles{transition:none}}
