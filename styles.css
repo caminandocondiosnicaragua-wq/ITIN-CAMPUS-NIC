@@ -915,3 +915,30 @@ button, .button {
  .about-logo-emblem:hover .about-principles{background:radial-gradient(circle at 32% 20%,#526247 0%,#34412f 54%,#20281f 100%);transform:scale(1.045);box-shadow:0 0 0 5px rgba(255,250,235,.48),0 0 26px rgba(224,201,139,.3),0 10px 23px rgba(35,43,32,.25),inset 0 1px 0 rgba(255,255,255,.2)}
 }
 @media(max-width:800px){.about-logo-emblem .about-institute-logo{width:185px;max-height:185px}.about-logo-emblem .about-principles{width:128px;height:128px;flex-basis:128px;font-size:15px}}
+
+/* Fix final de cascada: neutralizar los estilos genéricos de .about-emblem span */
+.about-logo-emblem .about-principles span{
+  display:block;
+  width:100%;
+  height:auto;
+  flex:0 0 auto;
+  margin:0;
+  padding:0;
+  border:0;
+  border-radius:0;
+  background:transparent;
+  outline:0;
+  box-shadow:none;
+  font-family:"Playfair Display",serif;
+  font-size:16px;
+  font-weight:600;
+  line-height:1.15;
+  letter-spacing:.035em;
+  color:#fff8e5;
+  text-align:center;
+  text-shadow:0 1px 2px rgba(0,0,0,.35);
+  white-space:nowrap;
+}
+.about-logo-emblem .about-institute-logo{margin-bottom:18px}
+.about-logo-emblem .about-principles{gap:6px}
+@media(max-width:800px){.about-logo-emblem .about-principles span{font-size:15px}}
