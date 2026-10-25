@@ -8,10 +8,10 @@
   <title>ITIN CAMPUS | Formación bíblica y teológica</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=20261025-archive6">
+  <link rel="stylesheet" href="styles.css?v=20261025-agenda1">
   <link rel="stylesheet" href="academico.css?v=20261023d">
   <script src="https://accounts.google.com/gsi/client" defer></script>
-  <script src="app.js?v=20261025-archive6" defer></script>
+  <script src="app.js?v=20261025-agenda1" defer></script>
   <script src="academico.js?v=20261023d" defer></script>
   <script src="hero-carousel.js?v=20261023c" defer></script>
 <script>
@@ -326,6 +326,31 @@
     </section>
   </div>
   </div>
+  </div>
+</section>
+<section id="admin-agenda-module" class="admin-agenda-module" aria-label="Agenda administrativa">
+  <div class="admin-agenda-sticker">
+    <button type="button" class="admin-agenda-sticker-open" id="admin-agenda-open" aria-haspopup="dialog" aria-controls="admin-agenda-dialog">
+      <span class="admin-agenda-sticker-label">✦ AGENDA ITIN</span>
+      <span class="admin-agenda-sticker-main"><img src="img/Robot%20Mascota%20Institucional%20Sonriente.png" alt="" aria-hidden="true"><span class="admin-agenda-count-wrap"><strong id="admin-agenda-count">0</strong><span id="admin-agenda-message">No hay actividades el día de hoy</span></span></span>
+    </button>
+    <button type="button" class="admin-agenda-schedule" id="admin-agenda-new">＋ Programar actividad</button>
+  </div>
+  <div class="admin-agenda-overlay" id="admin-agenda-dialog" hidden role="dialog" aria-modal="true" aria-labelledby="admin-agenda-title">
+    <section class="admin-agenda-window">
+      <button type="button" class="admin-agenda-close" id="admin-agenda-close" aria-label="Cerrar agenda" title="Cerrar agenda">✕</button>
+      <header class="admin-agenda-heading"><img src="img/Robot%20Mascota%20Institucional%20Sonriente.png" alt="" aria-hidden="true"><div><p class="admin-agenda-eyebrow">ASISTENTE ADMINISTRATIVO</p><h2 id="admin-agenda-title">Agenda ITIN</h2><p id="admin-agenda-greeting">¡Vamos a revisar tus actividades!</p></div></header>
+      <p class="admin-agenda-status" id="admin-agenda-status" role="status" aria-live="polite">Cargando actividades…</p>
+      <div id="admin-agenda-today-list" class="admin-agenda-today-list"></div>
+      <button type="button" class="admin-agenda-refresh" id="admin-agenda-refresh">↻ Actualizar actividades</button>
+      <form id="admin-agenda-form" class="admin-agenda-form" hidden>
+        <h3>Programar actividad</h3>
+        <label for="admin-agenda-activity">Actividad<input id="admin-agenda-activity" name="actividad" maxlength="2000" required placeholder="¿Qué necesitas hacer?"></label>
+        <div class="admin-agenda-date-fields"><label for="admin-agenda-start">Fecha y hora<input id="admin-agenda-start" name="fechaInicio" type="datetime-local" required></label><label for="admin-agenda-end">Finalización (opcional)<input id="admin-agenda-end" name="fechaFinal" type="datetime-local"></label></div>
+        <label for="admin-agenda-notes">Observaciones (opcional)<textarea id="admin-agenda-notes" name="observaciones" rows="3" maxlength="2000" placeholder="Detalles que quieras recordar"></textarea></label>
+        <div class="admin-agenda-form-actions"><button type="submit" class="admin-agenda-schedule">Guardar actividad</button><button type="button" class="admin-agenda-cancel" id="admin-agenda-cancel">Cancelar</button></div>
+      </form>
+    </section>
   </div>
 </section><div class="admin-card-grid"><button type="button" class="admin-module-card" data-admin-module="solicitudes"><span class="admin-module-icon">▤</span><span class="admin-module-number">01 / ADMISIONES</span><strong>Solicitudes y consultas</strong><small>Solicitudes de ingreso, expedientes y estudiantes activos.</small><span class="admin-module-link">Abrir módulo ↗</span></button><button type="button" class="admin-module-card" data-admin-module="matriculas"><span class="admin-module-icon">▣</span><span class="admin-module-number">02 / REGISTRO</span><strong>Matrículas</strong><small>Registrar y consultar matrículas.</small><span class="admin-module-link">Abrir módulo ↗</span></button><button type="button" class="admin-module-card" data-admin-module="pagos"><span class="admin-module-icon">$</span><span class="admin-module-number">03 / FINANZAS</span><strong>Gestión de pagos</strong><small>Pagos realizados, recibos y saldos.</small><span class="admin-module-link">Abrir módulo ↗</span></button><button type="button" class="admin-module-card" data-admin-module="academico"><span class="admin-module-icon">✦</span><span class="admin-module-number">04 / CONFIGURACIÓN</span><strong>Control académico</strong><small>Programas, clases, profesores y precios.</small><span class="admin-module-link">Abrir módulo ↗</span></button></div><section class="admin-module-view" id="admin-module-view" hidden aria-live="polite"><button type="button" class="text-link" id="admin-back-dashboard">← Volver al panel</button><p class="eyebrow" id="admin-module-kicker">MÓDULO ADMINISTRATIVO</p><h2 id="admin-module-title"></h2><p id="admin-module-description"></p><div id="admin-solicitudes-tools" class="admin-data-tools" hidden>
   <div class="admin-data-toolbar"><label for="admin-student-search">Buscar estudiante <input id="admin-student-search" type="search" placeholder="Nombre, cédula o correo"></label><button type="button" class="button button-quiet" id="admin-refresh-students">Actualizar lista</button></div>
