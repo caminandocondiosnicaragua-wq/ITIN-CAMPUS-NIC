@@ -1007,3 +1007,21 @@ button, .button {
 .admin-mailbox-reply-footer button:disabled{opacity:.6;cursor:wait}
 .admin-mailbox-send-success{margin:0 0 14px;padding:11px 13px;border-radius:10px;background:#edf7ec;color:#28532b;font-size:12px;font-weight:700}
 @media(max-width:760px){.admin-mailbox-intro{grid-template-columns:90px minmax(0,1fr);gap:14px}.admin-mailbox-robot img{width:85px;max-height:100px}.admin-mailbox-speech{font-size:9px;padding:8px}.admin-mailbox-count{grid-column:1/-1;flex-direction:row;justify-self:stretch;justify-content:flex-start;min-height:0;gap:10px;padding:10px 14px}.admin-mailbox-count span{font-size:25px}.admin-mailbox-count small{max-width:none;margin:0}.admin-mailbox-workspace{grid-template-columns:1fr}.admin-mailbox-list-panel{border-right:0;border-bottom:1px solid #e8e0d0}.admin-mailbox-list{max-height:230px}.admin-mailbox-message-panel{padding:16px}.admin-mailbox-reply-footer{align-items:stretch;flex-direction:column}.admin-mailbox-reply-footer button{width:100%}}
+
+/* Buzón administrativo plegable: inicia como una tarjeta compacta. */
+.admin-mailbox-module{padding:0;overflow:hidden;border-radius:16px;margin:18px 0 24px}
+.admin-mailbox-toggle{display:flex;align-items:center;gap:14px;width:100%;min-height:76px;padding:14px 20px;border:0;background:linear-gradient(110deg,#fffdf6,#f8f1df);color:var(--ink);text-align:left;cursor:pointer}
+.admin-mailbox-toggle:hover{background:#f5ecd8}
+.admin-mailbox-toggle-icon{display:grid;place-items:center;flex:0 0 42px;height:42px;border-radius:12px;background:#f1e4c3;color:#75613a;font-size:21px}
+.admin-mailbox-toggle-copy{display:flex;flex-direction:column;gap:4px;min-width:0}
+.admin-mailbox-toggle-copy strong{font-size:14px}
+.admin-mailbox-toggle-copy small{font-size:11px;color:var(--muted)}
+.admin-mailbox-toggle-count{margin-left:auto;padding:7px 11px;border:1px solid #dfc99c;border-radius:20px;color:#796239;font-size:11px;white-space:nowrap}
+.admin-mailbox-toggle-count[hidden]{display:none}
+.admin-mailbox-toggle-chevron{margin-left:4px;color:#796239;font-size:21px;transition:transform .18s ease}
+.admin-mailbox-module.is-open .admin-mailbox-toggle-chevron{transform:rotate(180deg)}
+.admin-mailbox-content{padding:clamp(16px,2.5vw,28px);border-top:1px solid #e5dcc6}
+.admin-mailbox-content[hidden]{display:none}
+.admin-mailbox-intro{grid-template-columns:minmax(90px,130px) minmax(0,1fr) auto}
+.admin-mailbox-robot img{width:min(100%,105px);max-height:110px}
+@media(max-width:650px){.admin-mailbox-toggle{gap:9px;padding:12px}.admin-mailbox-toggle-icon{flex-basis:36px;height:36px}.admin-mailbox-toggle-copy small{max-width:170px}.admin-mailbox-toggle-count{padding:6px 8px;font-size:10px}.admin-mailbox-content{padding:12px}.admin-mailbox-intro{grid-template-columns:1fr auto}.admin-mailbox-robot{display:none}.admin-mailbox-heading{grid-column:1/-1;grid-row:1}.admin-mailbox-count{min-width:75px;min-height:75px}}
