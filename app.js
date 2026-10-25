@@ -109,6 +109,18 @@
   const contactAlert = document.getElementById('contact-alert');
   const contactSubmit = document.getElementById('contact-submit');
   const contactAttachment = document.getElementById('contact-attachment');
+  const contactConsulta = contactForm ? contactForm.elements.namedItem('consulta') : null;
+  const contactConsultaCounter = document.getElementById('contact-consulta-counter');
+  const updateContactConsultaCounter = () => {
+    if (!contactConsulta || !contactConsultaCounter) return;
+    const length = contactConsulta.value.length;
+    contactConsultaCounter.textContent = length.toLocaleString('es-NI') + '/1.000';
+    contactConsultaCounter.classList.toggle('is-limit-reached', length >= 1000);
+  };
+  if (contactConsulta) {
+    contactConsulta.addEventListener('input', updateContactConsultaCounter);
+    updateContactConsultaCounter();
+  }
   const CONTACT_ATTACHMENT_MAX_BYTES = 5 * 1024 * 1024;
   const CONTACT_ATTACHMENT_TYPES = [
     'application/pdf',
@@ -131,7 +143,7 @@
     for (const key of ['nombre','correo','asunto','consulta']) data[key] = String(data[key] || '').trim();
     data.correo = data.correo.toLowerCase();
     if (!data.nombre || !data.correo || !data.asunto || !data.consulta) return showContactNotice('Completa todos los campos antes de enviar.', false);
-    if (data.nombre.length > 150 || data.correo.length > 254 || data.asunto.length > 180 || data.consulta.length > 5000) return showContactNotice('Uno de los campos supera el límite permitido.', false);
+    if (data.nombre.length > 150 || data.correo.length > 254 || data.asunto.length > 180 || data.consulta.length > 1000) return showContactNotice('Uno de los campos supera el límite permitido.', false);
     if (selectedFile) {
       if (!CONTACT_ATTACHMENT_TYPES.includes(selectedFile.type)) {
         return showContactNotice('Formato no permitido. Adjunta un PDF, JPG, PNG o documento Word.', false);
