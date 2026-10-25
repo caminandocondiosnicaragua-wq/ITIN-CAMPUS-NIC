@@ -8,10 +8,10 @@
   <title>ITIN CAMPUS | Formación bíblica y teológica</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=20261025-mailbox2">
+  <link rel="stylesheet" href="styles.css?v=20261025-contactfiles1">
   <link rel="stylesheet" href="academico.css?v=20261023d">
   <script src="https://accounts.google.com/gsi/client" defer></script>
-  <script src="app.js?v=20261025-mailbox2" defer></script>
+  <script src="app.js?v=20261025-contactfiles1" defer></script>
   <script src="academico.js?v=20261023d" defer></script>
   <script src="hero-carousel.js?v=20261023c" defer></script>
 <script>
@@ -254,6 +254,7 @@
       <label class="field"><span class="field-label">Correo electrónico <b class="required-mark">*</b></span><input name="correo" type="email" autocomplete="email" maxlength="254" required placeholder="nombre@correo.com"></label>
       <label class="field"><span class="field-label">Asunto <b class="required-mark">*</b></span><input name="asunto" maxlength="180" required placeholder="¿Sobre qué deseas consultarnos?"></label>
       <label class="field"><span class="field-label">Tu consulta <b class="required-mark">*</b></span><textarea name="consulta" rows="6" maxlength="5000" required placeholder="Cuéntanos cómo podemos ayudarte."></textarea><small class="field-help">Máximo 5.000 caracteres.</small></label>
+      <label class="field contact-file-field"><span class="field-label">Archivo adjunto <span class="field-optional">(opcional)</span></span><input id="contact-attachment" name="archivo" type="file" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,application/pdf,image/jpeg,image/png,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" aria-describedby="contact-attachment-help"><small class="field-help" id="contact-attachment-help">PDF, JPG, PNG o Word. Máximo 5 MB.</small></label>
       <div id="contact-alert" class="form-alert" role="status" aria-live="polite" hidden></div><button class="button button-primary contact-submit" type="submit" id="contact-submit">Enviar consulta <span aria-hidden="true">→</span></button>
     </form>
   </div>
@@ -295,6 +296,7 @@
         <div class="admin-mailbox-detail-top"><div><p id="admin-mailbox-ticket" class="admin-mailbox-ticket"></p><h3 id="admin-mailbox-subject"></h3></div><span id="admin-mailbox-state" class="admin-mailbox-state"></span></div>
         <div class="admin-mailbox-sender"><strong id="admin-mailbox-sender-name"></strong><a id="admin-mailbox-sender-email" href="#"></a><time id="admin-mailbox-received"></time></div>
         <div id="admin-mailbox-query" class="admin-mailbox-query"></div>
+        <section id="admin-mailbox-attachments" class="admin-mailbox-attachments" aria-label="Archivos adjuntos" hidden><strong>Archivos adjuntos</strong><div id="admin-mailbox-attachments-list"></div></section>
         <div id="admin-mailbox-previous-reply" class="admin-mailbox-previous-reply" hidden><strong>Respuesta enviada</strong><p id="admin-mailbox-previous-reply-text"></p><small id="admin-mailbox-reply-date"></small></div>
         <form id="admin-mailbox-reply-form" class="admin-mailbox-reply-form">
           <label for="admin-mailbox-reply"><strong>Escribir respuesta</strong><textarea id="admin-mailbox-reply" maxlength="5000" rows="5" required placeholder="Escribe aquí la respuesta para el consultante…"></textarea></label>
