@@ -8,10 +8,10 @@
   <title>ITIN CAMPUS | Formación bíblica y teológica</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=20261025-mailmodal5">
+  <link rel="stylesheet" href="styles.css?v=20261025-mailmodal6">
   <link rel="stylesheet" href="academico.css?v=20261023d">
   <script src="https://accounts.google.com/gsi/client" defer></script>
-  <script src="app.js?v=20261025-mailmodal5" defer></script>
+  <script src="app.js?v=20261025-mailmodal6" defer></script>
   <script src="academico.js?v=20261023d" defer></script>
   <script src="hero-carousel.js?v=20261023c" defer></script>
 <script>
@@ -269,6 +269,18 @@
     <span class="admin-mailbox-toggle-chevron" aria-hidden="true">⌄</span>
   </button>
   <div class="admin-mailbox-content" id="admin-mailbox-content" hidden role="dialog" aria-modal="true" aria-labelledby="admin-mailbox-title" tabindex="-1">
+  <div class="admin-attachment-viewer" id="admin-attachment-viewer" hidden role="dialog" aria-modal="true" aria-labelledby="admin-attachment-viewer-title">
+    <section class="admin-attachment-viewer-window">
+      <header class="admin-attachment-viewer-header">
+        <div><strong id="admin-attachment-viewer-title">Archivo adjunto</strong><small id="admin-attachment-viewer-note">Vista previa del archivo</small></div>
+        <div class="admin-attachment-viewer-actions">
+          <button type="button" class="button button-primary" id="admin-attachment-viewer-print">Imprimir</button>
+          <button type="button" class="button button-quiet" id="admin-attachment-viewer-close" aria-label="Cerrar vista previa">Cerrar ×</button>
+        </div>
+      </header>
+      <div class="admin-attachment-viewer-stage" id="admin-attachment-viewer-stage"></div>
+    </section>
+  </div>
   <div class="admin-mailbox-window">
   <button type="button" class="admin-mailbox-close" id="admin-mailbox-close" aria-label="Cerrar buzón" title="Cerrar buzón">×</button>
   <div class="admin-mailbox-intro">
