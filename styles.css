@@ -1169,3 +1169,15 @@ button, .button {
 .admin-mailbox-toolbar-actions .admin-mailbox-refresh-action:hover{background:#f4e8c9}
 .admin-mailbox-detail-actions{display:none}
 @media(max-width:700px){.admin-mailbox-toolbar{align-items:flex-start;flex-direction:column}.admin-mailbox-toolbar-actions{width:100%}.admin-mailbox-toolbar-actions button{flex:1}}
+
+/* La columna de mensajes ocupa toda la altura del panel; solo muestra barra si hace falta. */
+.admin-mailbox-workspace{align-items:stretch;min-height:clamp(520px,68vh,760px)}
+.admin-mailbox-list-panel{display:flex;flex-direction:column;align-self:stretch;min-height:0;height:100%;overflow:hidden}
+.admin-mailbox-list{flex:1 1 auto;min-height:0;max-height:none;height:auto;overflow-y:auto;overscroll-behavior:contain;scrollbar-gutter:stable}
+.admin-mailbox-list:has(.admin-mailbox-item:nth-child(1)){background:#39432e}
+.admin-mailbox-list:has(.admin-mailbox-empty){background:#fffdf8}
+@media(max-width:700px){
+  .admin-mailbox-workspace{min-height:0}
+  .admin-mailbox-list-panel{height:auto;min-height:260px;max-height:52vh}
+  .admin-mailbox-list{flex:1 1 auto;min-height:0;max-height:none;overflow-y:auto}
+}
