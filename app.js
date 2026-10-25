@@ -1218,6 +1218,9 @@
   function closeAdminMailbox() {
     if (!adminMailboxContent || adminMailboxContent.hidden) return;
     adminMailboxContent.hidden = true;
+    adminMailboxContent.style.cssText = '';
+    const mailboxWindow = adminMailboxContent.querySelector('.admin-mailbox-window');
+    if (mailboxWindow) mailboxWindow.style.cssText = '';
     adminMailboxToggle && adminMailboxToggle.setAttribute('aria-expanded', 'false');
     document.body.classList.remove('admin-mailbox-open');
     if (adminMailboxToggle) adminMailboxToggle.focus();
@@ -1225,6 +1228,9 @@
   if (adminMailboxToggle && adminMailboxContent) {
     adminMailboxToggle.addEventListener('click', () => {
       adminMailboxContent.hidden = false;
+      adminMailboxContent.style.cssText = 'position:fixed!important;inset:0!important;z-index:10000!important;display:flex!important;align-items:center!important;justify-content:center!important;padding:24px!important;background:rgba(24,30,22,.72)!important;backdrop-filter:blur(5px);overflow:auto!important;';
+      const mailboxWindow = adminMailboxContent.querySelector('.admin-mailbox-window');
+      if (mailboxWindow) mailboxWindow.style.cssText = 'position:relative;width:min(1180px,100%)!important;max-height:90vh!important;overflow:auto!important;padding:26px!important;border:1px solid #d8c89f;border-radius:22px;background:linear-gradient(135deg,#fffdf6 0%,#f8f1df 100%);box-shadow:0 24px 90px rgba(0,0,0,.32);';
       adminMailboxToggle.setAttribute('aria-expanded', 'true');
       document.body.classList.add('admin-mailbox-open');
       if (!adminCredential) setAdminMailboxStatus('Inicia sesión como administrador para consultar el buzón.', true);
