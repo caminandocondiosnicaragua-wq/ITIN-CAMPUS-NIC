@@ -1091,3 +1091,13 @@ button, .button {
  .admin-mailbox-toggle-count{gap:4px;padding:5px 7px;font-size:9px}
  .admin-mailbox-toggle-count span{font-size:22px}
 }
+
+
+/* Refuerzo de prioridad para que el buzón SIEMPRE sea modal y no empuje las tarjetas. */
+#admin-mailbox-content:not([hidden]){position:fixed!important;inset:0!important;z-index:10000!important;display:flex!important;align-items:center!important;justify-content:center!important;overflow:auto!important}
+#admin-mailbox-content .admin-mailbox-window{position:relative!important;width:min(1180px,100%)!important;max-height:90vh!important;overflow:auto!important}
+#admin-mailbox-toggle .admin-mailbox-toggle-robot{display:block!important;visibility:visible!important;opacity:1!important;flex:0 0 62px!important;width:62px!important;height:62px!important;object-fit:contain!important}
+@media(max-width:760px){
+ #admin-mailbox-content:not([hidden]){padding:10px!important;align-items:flex-start!important}
+ #admin-mailbox-content .admin-mailbox-window{max-height:calc(100vh - 20px)!important;padding:18px 12px!important}
+}
