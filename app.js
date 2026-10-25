@@ -1,5 +1,6 @@
 (() => {
   const API_URL = 'https://script.google.com/macros/s/AKfycbxauXEu0OSdzjVBL6Z4GzxR6Jd_-OQwCsnLL6g-h-ERhr8qszpUZc4scZWlMm6veWPsow/exec';
+  const CONTACT_API_URL = 'https://script.google.com/macros/s/AKfycbxWln_ygIk8UWSVlzdSL8nerFyF2ppeM1OHcgn9X1dftgTpOaz6d1DaVJKWCvWBXCvycw/exec';
   const sections = [...document.querySelectorAll('[data-section]')];
   const navLinks = [...document.querySelectorAll('[data-page]')];
   const menu = document.getElementById('main-nav');
@@ -78,6 +79,7 @@
     menu.classList.remove('open');
     menuToggle.setAttribute('aria-expanded', 'false');
     if (validPage === 'solicitud') { updateApplicationEntry(); if (programSelect.value) updateStep(); }
+    if (validPage === 'contacto') resetContactNotice();
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
@@ -102,6 +104,37 @@
     const open = menu.classList.toggle('open');
     menuToggle.setAttribute('aria-expanded', String(open));
   });
+
+  const contactForm = document.getElementById('contact-form');
+  const contactAlert = document.getElementById('contact-alert');
+  const contactSubmit = document.getElementById('contact-submit');
+  function resetContactNotice() {
+    if (!contactAlert || contactAlert.dataset.persistent === 'true') return;
+    contactAlert.hidden = true; contactAlert.textContent = ''; contactAlert.className = 'form-alert';
+  }
+  if (contactForm) contactForm.addEventListener('submit', async (event) => {
+    event.preventDefault(); resetContactNotice();
+    if (!contactForm.reportValidity()) return;
+    const data = Object.fromEntries(new FormData(contactForm).entries());
+    for (const key of ['nombre','correo','asunto','consulta']) data[key] = String(data[key] || '').trim();
+    data.correo = data.correo.toLowerCase();
+    if (!data.nombre || !data.correo || !data.asunto || !data.consulta) return showContactNotice('Completa todos los campos antes de enviar.', false);
+    if (data.nombre.length>150 || data.correo.length>254 || data.asunto.length>180 || data.consulta.length>5000) return showContactNotice('Uno de los campos supera el límite permitido.', false);
+    contactSubmit.disabled=true; contactSubmit.setAttribute('aria-busy','true'); contactSubmit.textContent='Enviando…';
+    showContactNotice('Estamos enviando tu consulta.', false);
+    try {
+      const response=await fetch(CONTACT_API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({accion:'registrarConsulta',datos:data})});
+      if(!response.ok) throw new Error('No fue posible conectar con el buzón. Intenta de nuevo.');
+      const result=await response.json();
+      if(!result || result.ok!==true) throw new Error(result&&result.error?result.error:'No se pudo registrar la consulta.');
+      contactForm.reset(); showContactNotice('¡Consulta recibida! Tu número de ticket es '+result.ticket+'. Guarda este número para futuras referencias.',true);
+    } catch(error) { showContactNotice(error&&error.message?error.message:'No se pudo enviar la consulta. Intenta nuevamente.',false); }
+    finally { contactSubmit.disabled=false; contactSubmit.removeAttribute('aria-busy'); contactSubmit.innerHTML='Enviar consulta <span aria-hidden="true">→</span>'; }
+  });
+  function showContactNotice(message,success) {
+    if(!contactAlert)return; contactAlert.hidden=false; contactAlert.dataset.persistent=success?'true':'false'; contactAlert.textContent=message;
+    contactAlert.className='form-alert '+(success?'contact-alert-success':'contact-alert-message');
+  }
 
   function isMasters() {
     return /maestr[ií]a/i.test(programSelect.value);
