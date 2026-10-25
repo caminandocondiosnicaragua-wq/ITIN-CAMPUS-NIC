@@ -1075,3 +1075,19 @@ button, .button {
  .admin-mailbox-detail{position:absolute;left:0;top:0;width:100%;background:white;color:black}
  .admin-mailbox-detail .admin-mailbox-reply-form{display:none!important}
 }
+
+
+/* Ajustes visibles de la tarjeta compacta del buzón: robot y contador rojo. */
+.admin-mailbox-toggle{gap:12px;min-width:0}
+.admin-mailbox-toggle-robot{display:block!important;visibility:visible!important;opacity:1!important;width:62px;height:62px;flex:0 0 62px;object-fit:contain;object-position:center;filter:drop-shadow(0 4px 5px rgba(37,45,34,.16))}
+.admin-mailbox-toggle-count{display:flex;align-items:center;gap:6px;margin-left:auto;flex:0 0 auto;padding:5px 10px;border:1px solid #e5b5b0;border-radius:12px;background:#fff4f2;color:#a62620;font-size:10px;white-space:nowrap}
+.admin-mailbox-toggle-count span{display:inline-block;color:#b4231d;font-size:26px;font-weight:900;line-height:1;font-variant-numeric:tabular-nums}
+.admin-mailbox-toggle-chevron{flex:0 0 auto;margin-left:0}
+@media(max-width:520px){
+ .admin-mailbox-toggle{gap:8px;padding:10px 12px}
+ .admin-mailbox-toggle-robot{width:48px;height:48px;flex-basis:48px}
+ .admin-mailbox-toggle-copy strong{font-size:12px}
+ .admin-mailbox-toggle-copy small{font-size:10px}
+ .admin-mailbox-toggle-count{gap:4px;padding:5px 7px;font-size:9px}
+ .admin-mailbox-toggle-count span{font-size:22px}
+}
