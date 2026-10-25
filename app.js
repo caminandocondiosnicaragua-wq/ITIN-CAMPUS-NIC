@@ -1203,12 +1203,11 @@
         const attachments = Array.isArray(message.archivos) ? message.archivos : [];
         attachments.forEach((file) => {
           if (!file || typeof file.url !== 'string' || !/^https:\/\//i.test(file.url)) return;
-          const link = document.createElement('a');
-          link.href = file.url;
-          link.target = '_blank';
-          link.rel = 'noopener noreferrer';
-          link.textContent = file.nombre || 'Abrir archivo adjunto';
+          const link = document.createElement('button');
+          link.type = 'button';
+          link.textContent = '📎 ' + (file.nombre || 'Ver archivo adjunto');
           link.className = 'admin-mailbox-attachment-link';
+          link.addEventListener('click', () => openAdminAttachmentPreview(file));
           attachmentsList.appendChild(link);
         });
         attachmentsPanel.hidden = attachmentsList.childElementCount === 0;
@@ -1230,6 +1229,117 @@
       setAdminMailboxStatus(error.message || 'No se pudo abrir la consulta.', true);
     }
   }
+
+  const adminAttachmentViewer = document.getElementById('admin-attachment-viewer');
+  const adminAttachmentStage = document.getElementById('admin-attachment-viewer-stage');
+  const adminAttachmentTitle = document.getElementById('admin-attachment-viewer-title');
+  const adminAttachmentNote = document.getElementById('admin-attachment-viewer-note');
+  let activeAdminAttachment = null;
+
+  function closeAdminAttachmentPreview() {
+    if (!adminAttachmentViewer) return;
+    adminAttachmentViewer.hidden = true;
+    if (adminAttachmentStage) adminAttachmentStage.replaceChildren();
+    activeAdminAttachment = null;
+  }
+
+  function openAdminAttachmentPreview(file) {
+    if (!adminAttachmentViewer || !adminAttachmentStage || !file || !file.url) return;
+    activeAdminAttachment = file;
+    adminAttachmentStage.replaceChildren();
+    const name = String(file.nombre || 'Archivo adjunto');
+    const lower = name.toLowerCase();
+    const isImage = /\.(png|jpe?g|gif|webp|bmp|svg)$/i.test(lower);
+    const isPdf = /\.pdf$/i.test(lower);
+    const isWord = /\.(doc|docx)$/i.test(lower);
+    if (adminAttachmentTitle) adminAttachmentTitle.textContent = name;
+    if (adminAttachmentNote) adminAttachmentNote.textContent = isWord
+      ? 'Vista previa de Word. La impresión depende de que el visor de Office pueda abrir el archivo.'
+      : 'Vista previa del archivo adjunto. Puedes imprimir sin descargarlo manualmente.';
+    if (isImage) {
+      const img = document.createElement('img');
+      img.src = file.url;
+      img.alt = name;
+      img.className = 'admin-attachment-preview-image';
+      img.addEventListener('error', () => {
+        if (adminAttachmentNote) adminAttachmentNote.textContent = 'No se pudo mostrar la imagen aquí. Comprueba el acceso al archivo.';
+      });
+      adminAttachmentStage.appendChild(img);
+    } else if (isPdf) {
+      const frame = document.createElement('iframe');
+      frame.src = file.url + '#toolbar=1&navpanes=0';
+      frame.title = name;
+      frame.className = 'admin-attachment-preview-frame';
+      frame.setAttribute('allow', 'fullscreen');
+      adminAttachmentStage.appendChild(frame);
+    } else if (isWord) {
+      const frame = document.createElement('iframe');
+      frame.src = 'https://view.officeapps.live.com/op/embed.aspx?src=' + encodeURIComponent(file.url);
+      frame.title = name;
+      frame.className = 'admin-attachment-preview-frame';
+      frame.setAttribute('allow', 'fullscreen');
+      adminAttachmentStage.appendChild(frame);
+    } else {
+      const note = document.createElement('p');
+      note.className = 'admin-attachment-preview-message';
+      note.textContent = 'Este formato no tiene vista previa integrada. Puedes abrir el archivo en una pestaña nueva.';
+      const open = document.createElement('a');
+      open.href = file.url;
+      open.target = '_blank';
+      open.rel = 'noopener noreferrer';
+      open.textContent = 'Abrir archivo';
+      open.className = 'button button-quiet';
+      adminAttachmentStage.append(note, open);
+    }
+    adminAttachmentViewer.hidden = false;
+  }
+
+  const adminAttachmentClose = document.getElementById('admin-attachment-viewer-close');
+  const adminAttachmentPrint = document.getElementById('admin-attachment-viewer-print');
+  if (adminAttachmentClose) adminAttachmentClose.addEventListener('click', closeAdminAttachmentPreview);
+  if (adminAttachmentViewer) adminAttachmentViewer.addEventListener('click', event => {
+    if (event.target === adminAttachmentViewer) closeAdminAttachmentPreview();
+  });
+  if (adminAttachmentPrint) adminAttachmentPrint.addEventListener('click', () => {
+    if (!activeAdminAttachment) return;
+    const name = String(activeAdminAttachment.nombre || '').toLowerCase();
+    if (/\.(png|jpe?g|gif|webp|bmp|svg)$/i.test(name)) {
+      const img = adminAttachmentStage && adminAttachmentStage.querySelector('img');
+      if (!img || !img.complete) {
+        if (adminAttachmentNote) adminAttachmentNote.textContent = 'Espera a que la imagen termine de cargar y vuelve a pulsar Imprimir.';
+        return;
+      }
+      const win = window.open('', '_blank');
+      if (!win) {
+        if (adminAttachmentNote) adminAttachmentNote.textContent = 'Permite ventanas emergentes para imprimir esta imagen.';
+        return;
+      }
+      win.document.write('<!doctype html><html><head><meta charset="utf-8"><title>Imprimir imagen</title><style>@page{margin:10mm}body{margin:0;display:grid;place-items:center;min-height:100vh}img{max-width:100%;max-height:95vh;object-fit:contain}@media print{body{min-height:0}img{max-width:100%;max-height:95vh}}</style></head><body><img src="' + img.src.replace(/&/g,'&amp;').replace(/"/g,'&quot;') + '" alt=""></body></html>');
+      win.document.close();
+      win.addEventListener('load', () => { win.focus(); win.print(); });
+    } else if (/\.pdf$/i.test(name)) {
+      const frame = adminAttachmentStage && adminAttachmentStage.querySelector('iframe');
+      try {
+        if (frame && frame.contentWindow) {
+          frame.contentWindow.focus();
+          frame.contentWindow.print();
+        } else if (adminAttachmentNote) {
+          adminAttachmentNote.textContent = 'Usa el icono de imprimir de la barra del visor PDF.';
+        }
+      } catch (_) {
+        if (adminAttachmentNote) adminAttachmentNote.textContent = 'Usa el icono de imprimir de la barra del visor PDF; el navegador controla la impresión del PDF.';
+      }
+    } else if (/\.(doc|docx)$/i.test(name)) {
+      if (adminAttachmentNote) adminAttachmentNote.textContent = 'En Word, usa la opción Imprimir del visor de Office. El visor externo controla esa impresión.';
+      const frame = adminAttachmentStage && adminAttachmentStage.querySelector('iframe');
+      if (frame && frame.contentWindow) frame.contentWindow.focus();
+    } else if (adminAttachmentNote) {
+      adminAttachmentNote.textContent = 'Este formato no admite impresión directa desde la vista previa.';
+    }
+  });
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && adminAttachmentViewer && !adminAttachmentViewer.hidden) closeAdminAttachmentPreview();
+  });
 
   function closeAdminMailbox() {
     if (!adminMailboxContent || adminMailboxContent.hidden) return;
