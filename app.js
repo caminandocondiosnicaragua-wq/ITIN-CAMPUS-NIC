@@ -739,7 +739,6 @@
       if (adminLoginPanel) adminLoginPanel.hidden = true;
       if (adminDashboard) adminDashboard.hidden = false;
       setAdminStatus('Identidad verificada por el servidor.', 'success');
-      loadAdminMailbox();
     } catch (error) {
       resetAdminSession(error.message || 'No se pudo verificar la cuenta. Inténtalo de nuevo.');
       setAdminStatus(error.message || 'No se pudo verificar la cuenta. Inténtalo de nuevo.', 'error');
@@ -974,6 +973,9 @@
 
   // Buzón de consultas independiente: utiliza su propio Apps Script y la credencial verificada de esta sesión.
   const adminMailbox = document.getElementById('admin-mailbox-module');
+  const adminMailboxToggle = document.getElementById('admin-mailbox-toggle');
+  const adminMailboxContent = document.getElementById('admin-mailbox-content');
+  const adminMailboxToggleCount = document.querySelector('.admin-mailbox-toggle-count');
   const adminMailboxStatus = document.getElementById('admin-mailbox-status');
   const adminMailboxList = document.getElementById('admin-mailbox-list');
   const adminMailboxRefresh = document.getElementById('admin-mailbox-refresh');
@@ -1123,6 +1125,19 @@
     }
   }
 
+  if (adminMailboxToggle && adminMailboxContent) {
+    adminMailboxToggle.addEventListener('click', () => {
+      const opening = adminMailboxContent.hidden;
+      adminMailboxContent.hidden = !opening;
+      adminMailboxToggle.setAttribute('aria-expanded', String(opening));
+      adminMailbox && adminMailbox.classList.toggle('is-open', opening);
+      if (adminMailboxToggleCount) adminMailboxToggleCount.hidden = opening;
+      if (opening) {
+        if (!adminCredential) setAdminMailboxStatus('Inicia sesión como administrador para consultar el buzón.', true);
+        else loadAdminMailbox();
+      }
+    });
+  }
   if (adminMailboxRefresh) adminMailboxRefresh.addEventListener('click', () => loadAdminMailbox(true));
   if (adminMailboxReplyForm) adminMailboxReplyForm.addEventListener('submit', async (event) => {
     event.preventDefault();
