@@ -1216,7 +1216,7 @@ button, .button {
 .admin-agenda-sticker-open:focus-visible,.admin-agenda-schedule:focus-visible,.admin-agenda-close:focus-visible,.admin-agenda-done:focus-visible{outline:3px solid #b98a24;outline-offset:3px}
 .admin-agenda-overlay[hidden],.admin-agenda-form[hidden],.admin-agenda-status[hidden],.admin-agenda-today-list[hidden],.admin-agenda-refresh[hidden]{display:none!important}
 .admin-agenda-overlay{position:fixed;inset:0;z-index:10050;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(36,34,22,.48);backdrop-filter:blur(4px)}
-.admin-agenda-window{position:relative;box-sizing:border-box;width:min(640px,calc(100vw - 32px));max-height:min(82vh,760px);overflow:auto;padding:26px;border:1px solid #d7bd7b;border-radius:24px;background:#fffaf0;box-shadow:0 24px 80px rgba(25,24,14,.28);color:#393a27}
+.admin-agenda-window{position:relative;box-sizing:border-box;width:min(520px,calc(100vw - 32px));max-height:min(78vh,760px);overflow:auto;padding:26px;border:1px solid #d7bd7b;border-radius:24px;background:#fffaf0;box-shadow:0 24px 80px rgba(25,24,14,.28);color:#393a27}
 .admin-agenda-close{position:absolute;right:15px;top:14px;width:40px;height:40px;border:1px solid #dfcda3;border-radius:50%;background:#fffdf8;color:#4b4c30;font-size:20px;font-weight:800;cursor:pointer}
 .admin-agenda-heading{display:flex;align-items:center;gap:16px;padding-right:45px;margin-bottom:14px}
 .admin-agenda-heading>img{width:94px;height:94px;object-fit:contain;flex-shrink:0}
