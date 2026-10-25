@@ -2639,6 +2639,15 @@
   function agendaLocalDate(value) { if (!value) return ''; const date = new Date(value); if (Number.isNaN(date.getTime())) return String(value).slice(0, 10); return new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Managua', year: 'numeric', month: '2-digit', day: '2-digit' }).format(date); }
   const agendaRoot=document.getElementById('admin-agenda-module'), agendaDialog=document.getElementById('admin-agenda-dialog'), agendaOpen=document.getElementById('admin-agenda-open'), agendaNew=document.getElementById('admin-agenda-new'), agendaClose=document.getElementById('admin-agenda-close'), agendaCount=document.getElementById('admin-agenda-count'), agendaMessage=document.getElementById('admin-agenda-message'), agendaStatus=document.getElementById('admin-agenda-status'), agendaList=document.getElementById('admin-agenda-today-list'), agendaForm=document.getElementById('admin-agenda-form'), agendaRefresh=document.getElementById('admin-agenda-refresh'), agendaHistory=document.getElementById('admin-agenda-history'), agendaCancel=document.getElementById('admin-agenda-cancel');
   let agendaItemsToday=[], agendaBusy=false, agendaLastItems=[], agendaActiveAlert=null;
+  // Alterna entre la consulta de actividades y el formulario original, sin afectar otros módulos.
+  function agendaShowForm(show){
+    const showingForm=Boolean(show);
+    if(agendaForm)agendaForm.hidden=!showingForm;
+    if(agendaList)agendaList.hidden=showingForm;
+    if(agendaStatus)agendaStatus.hidden=showingForm;
+    if(agendaRefresh)agendaRefresh.hidden=showingForm;
+    if(agendaHistory)agendaHistory.hidden=showingForm;
+  }
   const agendaAlertedIds=new Set();
   let agendaPopup=null, agendaSoundContext=null;
   function agendaObservation(item){return item.observaciones||item.Observaciones||item.observacion||item.Observacion||item.notas||item.Notas||item.comentarios||item.Comentarios||'';}
