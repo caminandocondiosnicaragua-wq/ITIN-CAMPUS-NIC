@@ -776,6 +776,9 @@
       if (adminLoginPanel) adminLoginPanel.hidden = true;
       if (adminDashboard) adminDashboard.hidden = false;
       setAdminStatus('Identidad verificada por el servidor.', 'success');
+      // Carga la bandeja al validar la sesión para que el contador de la tarjeta
+      // muestre los mensajes nuevos aunque el buzón permanezca cerrado.
+      loadAdminMailbox();
     } catch (error) {
       resetAdminSession(error.message || 'No se pudo verificar la cuenta. Inténtalo de nuevo.');
       setAdminStatus(error.message || 'No se pudo verificar la cuenta. Inténtalo de nuevo.', 'error');
@@ -1259,6 +1262,12 @@
     if (event.key === 'Escape' && adminMailboxContent && !adminMailboxContent.hidden) closeAdminMailbox();
   });
   if (adminMailboxRefresh) adminMailboxRefresh.addEventListener('click', () => loadAdminMailbox(true));
+  // Actualiza la bandeja cada 15 minutos mientras la ventana del buzón está abierta.
+  window.setInterval(() => {
+    if (adminCredential && adminMailboxContent && !adminMailboxContent.hidden) {
+      loadAdminMailbox(true);
+    }
+  }, 15 * 60 * 1000);
   if (adminMailboxPrint) adminMailboxPrint.addEventListener('click', printAdminMailboxMessage);
   if (adminMailboxReplyForm) adminMailboxReplyForm.addEventListener('submit', async (event) => {
     event.preventDefault();
