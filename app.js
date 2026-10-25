@@ -2645,8 +2645,8 @@
     if(agendaForm)agendaForm.hidden=!showingForm;
     if(agendaList)agendaList.hidden=showingForm;
     if(agendaStatus)agendaStatus.hidden=showingForm;
-    if(agendaRefresh)agendaRefresh.hidden=showingForm;
-    if(agendaHistory)agendaHistory.hidden=showingForm;
+    const agendaToolbar=document.getElementById('admin-agenda-toolbar');
+    if(agendaToolbar)agendaToolbar.hidden=showingForm;
   }
   const agendaAlertedIds=new Set();
   let agendaPopup=null, agendaSoundContext=null;
