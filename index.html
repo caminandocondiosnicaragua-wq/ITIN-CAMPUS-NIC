@@ -8,10 +8,10 @@
   <title>ITIN CAMPUS | Formación bíblica y teológica</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=20261025-mailmodal7">
+  <link rel="stylesheet" href="styles.css?v=20261025-archive1">
   <link rel="stylesheet" href="academico.css?v=20261023d">
   <script src="https://accounts.google.com/gsi/client" defer></script>
-  <script src="app.js?v=20261025-mailmodal7" defer></script>
+  <script src="app.js?v=20261025-archive1" defer></script>
   <script src="academico.js?v=20261023d" defer></script>
   <script src="hero-carousel.js?v=20261023c" defer></script>
 <script>
@@ -300,6 +300,7 @@
     <p id="admin-mailbox-status" role="status" aria-live="polite">Preparando buzón…</p>
     <div class="admin-mailbox-toolbar-actions">
       <button type="button" class="button button-quiet" id="admin-mailbox-print" disabled>▤ Imprimir mensaje</button>
+      <button type="button" class="button button-quiet" id="admin-mailbox-archived-toggle">▣ Archivados</button>
       <button type="button" class="button button-quiet" id="admin-mailbox-refresh">↻ Actualizar</button>
     </div>
   </div>
@@ -311,7 +312,7 @@
     <section class="admin-mailbox-message-panel" aria-label="Consulta seleccionada">
       <div id="admin-mailbox-empty-detail" class="admin-mailbox-empty-detail"><span aria-hidden="true">✉</span><strong>Selecciona una consulta</strong><p>El contenido del mensaje aparecerá aquí para que puedas leerlo y responder.</p></div>
       <article id="admin-mailbox-detail" class="admin-mailbox-detail" hidden>
-        <div class="admin-mailbox-detail-top"><div class="admin-mailbox-detail-actions"><button type="button" id="admin-mailbox-delete" class="admin-mailbox-delete" title="Eliminar consulta seleccionada" aria-label="Eliminar consulta seleccionada">🗑 Eliminar</button></div>
+        <div class="admin-mailbox-detail-top"><div class="admin-mailbox-detail-actions"><button type="button" id="admin-mailbox-delete" class="admin-mailbox-delete" title="Archivar consulta seleccionada" aria-label="Archivar consulta seleccionada">▣ Archivar</button></div>
 <div><p id="admin-mailbox-ticket" class="admin-mailbox-ticket"></p><h3 id="admin-mailbox-subject"></h3></div><span id="admin-mailbox-state" class="admin-mailbox-state"></span></div>
         <div class="admin-mailbox-sender"><strong id="admin-mailbox-sender-name"></strong><a id="admin-mailbox-sender-email" href="#"></a><time id="admin-mailbox-received"></time></div>
         <div id="admin-mailbox-query" class="admin-mailbox-query"></div>
