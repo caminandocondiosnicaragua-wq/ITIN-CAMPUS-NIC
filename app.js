@@ -739,6 +739,7 @@
       if (adminLoginPanel) adminLoginPanel.hidden = true;
       if (adminDashboard) adminDashboard.hidden = false;
       setAdminStatus('Identidad verificada por el servidor.', 'success');
+      loadAdminMailbox();
     } catch (error) {
       resetAdminSession(error.message || 'No se pudo verificar la cuenta. Inténtalo de nuevo.');
       setAdminStatus(error.message || 'No se pudo verificar la cuenta. Inténtalo de nuevo.', 'error');
@@ -968,6 +969,187 @@
       adminDashboard.querySelector('.admin-card-grid').hidden = false;
     });
   }
+
+
+
+  // Buzón de consultas independiente: utiliza su propio Apps Script y la credencial verificada de esta sesión.
+  const adminMailbox = document.getElementById('admin-mailbox-module');
+  const adminMailboxStatus = document.getElementById('admin-mailbox-status');
+  const adminMailboxList = document.getElementById('admin-mailbox-list');
+  const adminMailboxRefresh = document.getElementById('admin-mailbox-refresh');
+  const adminMailboxCount = document.getElementById('admin-mailbox-unread-count');
+  const adminMailboxCountLabel = document.getElementById('admin-mailbox-unread-label');
+  const adminMailboxTotal = document.getElementById('admin-mailbox-total');
+  const adminMailboxEmptyDetail = document.getElementById('admin-mailbox-empty-detail');
+  const adminMailboxDetail = document.getElementById('admin-mailbox-detail');
+  const adminMailboxReplyForm = document.getElementById('admin-mailbox-reply-form');
+  const adminMailboxReply = document.getElementById('admin-mailbox-reply');
+  const adminMailboxSend = document.getElementById('admin-mailbox-send');
+  let adminMailboxMessages = [];
+  let adminMailboxSelectedId = '';
+  let adminMailboxBusy = false;
+
+  function setAdminMailboxStatus(message, isError) {
+    if (!adminMailboxStatus) return;
+    adminMailboxStatus.textContent = message;
+    adminMailboxStatus.dataset.state = isError ? 'error' : 'neutral';
+  }
+
+  async function adminMailboxRequest(payload) {
+    if (!adminCredential) throw new Error('Tu sesión administrativa ha terminado. Vuelve a iniciar sesión.');
+    const response = await fetch(CONTACT_API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ ...payload, credential: adminCredential }),
+      redirect: 'follow'
+    });
+    const raw = await response.text();
+    let result;
+    try { result = JSON.parse(raw); } catch (_) { throw new Error('El servicio del buzón no devolvió una respuesta válida.'); }
+    if (!response.ok || result.ok !== true) throw new Error(result.error || result.mensaje || 'No se pudo completar la operación del buzón.');
+    return result;
+  }
+
+  function mailboxDate(value) {
+    if (!value) return 'Fecha no disponible';
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? String(value) : date.toLocaleString('es-NI', { dateStyle: 'medium', timeStyle: 'short' });
+  }
+
+  function renderAdminMailboxList() {
+    if (!adminMailboxList) return;
+    adminMailboxList.replaceChildren();
+    if (!adminMailboxMessages.length) {
+      const empty = document.createElement('p');
+      empty.className = 'admin-mailbox-empty';
+      empty.textContent = 'No hay consultas registradas.';
+      adminMailboxList.appendChild(empty);
+      return;
+    }
+    adminMailboxMessages.forEach((message) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'admin-mailbox-item' + (message.id === adminMailboxSelectedId ? ' is-selected' : '') + (message.estado === 'Nuevo' ? ' is-unread' : '');
+      button.setAttribute('aria-pressed', String(message.id === adminMailboxSelectedId));
+      const title = document.createElement('strong');
+      title.textContent = message.nombre || 'Consultante';
+      const subject = document.createElement('span');
+      subject.className = 'admin-mailbox-item-subject';
+      subject.textContent = message.asunto || '(Sin asunto)';
+      const meta = document.createElement('span');
+      meta.className = 'admin-mailbox-item-meta';
+      meta.textContent = (message.ticket || 'Sin ticket') + ' · ' + mailboxDate(message.fechaRecepcion);
+      const state = document.createElement('span');
+      state.className = 'admin-mailbox-item-state';
+      state.textContent = message.estado || 'Sin estado';
+      button.append(title, subject, meta, state);
+      button.addEventListener('click', () => openAdminMailboxMessage(message.id));
+      adminMailboxList.appendChild(button);
+    });
+  }
+
+  function updateAdminMailboxCount() {
+    const unread = adminMailboxMessages.filter(message => message.estado === 'Nuevo').length;
+    if (adminMailboxCount) adminMailboxCount.textContent = String(unread);
+    if (adminMailboxCountLabel) adminMailboxCountLabel.textContent = unread === 1 ? 'consulta nueva' : 'consultas nuevas';
+    if (adminMailboxTotal) adminMailboxTotal.textContent = adminMailboxMessages.length + (adminMailboxMessages.length === 1 ? ' mensaje' : ' mensajes');
+  }
+
+  async function loadAdminMailbox(keepSelected) {
+    if (!adminMailbox || !adminCredential || adminMailboxBusy) return;
+    adminMailboxBusy = true;
+    if (adminMailboxRefresh) adminMailboxRefresh.disabled = true;
+    setAdminMailboxStatus('Actualizando consultas…', false);
+    try {
+      const result = await adminMailboxRequest({ accion: 'listarMensajes' });
+      adminMailboxMessages = Array.isArray(result.mensajes) ? result.mensajes : [];
+      adminMailboxMessages.sort((a,b) => String(b.fechaRecepcion || '').localeCompare(String(a.fechaRecepcion || '')));
+      updateAdminMailboxCount();
+      renderAdminMailboxList();
+      setAdminMailboxStatus('Buzón actualizado correctamente.', false);
+      if (keepSelected && adminMailboxSelectedId && adminMailboxMessages.some(m => m.id === adminMailboxSelectedId)) {
+        await openAdminMailboxMessage(adminMailboxSelectedId, true);
+      } else if (!adminMailboxMessages.length) {
+        adminMailboxSelectedId = '';
+        if (adminMailboxDetail) adminMailboxDetail.hidden = true;
+        if (adminMailboxEmptyDetail) adminMailboxEmptyDetail.hidden = false;
+      }
+    } catch (error) {
+      setAdminMailboxStatus(error.message || 'No se pudo cargar el buzón.', true);
+    } finally {
+      adminMailboxBusy = false;
+      if (adminMailboxRefresh) adminMailboxRefresh.disabled = false;
+    }
+  }
+
+  async function openAdminMailboxMessage(id, quiet) {
+    if (!id || !adminCredential) return;
+    setAdminMailboxStatus('Abriendo consulta…', false);
+    try {
+      const result = await adminMailboxRequest({ accion: 'abrirMensaje', id });
+      const message = result.mensaje || {};
+      adminMailboxSelectedId = id;
+      const values = {
+        'admin-mailbox-ticket': message.ticket || '',
+        'admin-mailbox-subject': message.asunto || '(Sin asunto)',
+        'admin-mailbox-sender-name': message.nombre || 'Consultante',
+        'admin-mailbox-sender-email': message.correo || '',
+        'admin-mailbox-received': 'Recibido: ' + mailboxDate(message.fechaRecepcion),
+        'admin-mailbox-query': message.consulta || '(Consulta vacía)',
+        'admin-mailbox-state': message.estado || 'En revisión',
+        'admin-mailbox-previous-reply-text': message.respuesta || '',
+        'admin-mailbox-reply-date': message.fechaRespuesta ? 'Respondido: ' + mailboxDate(message.fechaRespuesta) : ''
+      };
+      Object.entries(values).forEach(([idName,value]) => {
+        const element = document.getElementById(idName);
+        if (element) element.textContent = value;
+      });
+      const emailLink = document.getElementById('admin-mailbox-sender-email');
+      if (emailLink) emailLink.href = message.correo ? 'mailto:' + message.correo : '#';
+      const previousReply = document.getElementById('admin-mailbox-previous-reply');
+      if (previousReply) previousReply.hidden = !message.respuesta;
+      if (adminMailboxReply) adminMailboxReply.value = '';
+      if (adminMailboxDetail) adminMailboxDetail.hidden = false;
+      if (adminMailboxEmptyDetail) adminMailboxEmptyDetail.hidden = true;
+      renderAdminMailboxList();
+      setAdminMailboxStatus('Consulta ' + (message.ticket || '') + ' abierta.', false);
+      // Actualiza el estado "Nuevo" a "En revisión" en el contador y en la lista.
+      const local = adminMailboxMessages.find(item => item.id === id);
+      if (local && local.estado === 'Nuevo') local.estado = 'En revisión';
+      updateAdminMailboxCount();
+      renderAdminMailboxList();
+    } catch (error) {
+      setAdminMailboxStatus(error.message || 'No se pudo abrir la consulta.', true);
+    }
+  }
+
+  if (adminMailboxRefresh) adminMailboxRefresh.addEventListener('click', () => loadAdminMailbox(true));
+  if (adminMailboxReplyForm) adminMailboxReplyForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const texto = String(adminMailboxReply && adminMailboxReply.value || '').trim();
+    if (!adminMailboxSelectedId) { setAdminMailboxStatus('Selecciona primero una consulta.', true); return; }
+    if (!texto) { setAdminMailboxStatus('Escribe la respuesta antes de enviarla.', true); return; }
+    if (texto.length > 5000) { setAdminMailboxStatus('La respuesta supera los 5.000 caracteres permitidos.', true); return; }
+    if (adminMailboxSend) { adminMailboxSend.disabled = true; adminMailboxSend.textContent = 'Enviando…'; }
+    try {
+      const result = await adminMailboxRequest({ accion: 'responderMensaje', id: adminMailboxSelectedId, respuesta: texto });
+      setAdminMailboxStatus(result.mensaje || 'Respuesta enviada correctamente.', false);
+      const selectedId = adminMailboxSelectedId;
+      await loadAdminMailbox(false);
+      await openAdminMailboxMessage(selectedId, true);
+      const success = document.createElement('p');
+      success.className = 'admin-mailbox-send-success';
+      success.textContent = 'El mensaje fue enviado a su correo.';
+      const detail = document.getElementById('admin-mailbox-detail');
+      const old = detail && detail.querySelector('.admin-mailbox-send-success');
+      if (old) old.remove();
+      if (detail) detail.prepend(success);
+    } catch (error) {
+      setAdminMailboxStatus(error.message || 'No se pudo enviar la respuesta.', true);
+    } finally {
+      if (adminMailboxSend) { adminMailboxSend.disabled = false; adminMailboxSend.textContent = 'Enviar respuesta ↗'; }
+    }
+  });
 
 
   // Puente mínimo para módulos administrativos externos; conserva la credencial dentro de esta sesión.
