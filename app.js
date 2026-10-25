@@ -108,6 +108,15 @@
   const contactForm = document.getElementById('contact-form');
   const contactAlert = document.getElementById('contact-alert');
   const contactSubmit = document.getElementById('contact-submit');
+  const contactAttachment = document.getElementById('contact-attachment');
+  const CONTACT_ATTACHMENT_MAX_BYTES = 5 * 1024 * 1024;
+  const CONTACT_ATTACHMENT_TYPES = [
+    'application/pdf',
+    'image/jpeg',
+    'image/png',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+  ];
   function resetContactNotice() {
     if (!contactAlert || contactAlert.dataset.persistent === 'true') return;
     contactAlert.hidden = true; contactAlert.textContent = ''; contactAlert.className = 'form-alert';
@@ -115,21 +124,49 @@
   if (contactForm) contactForm.addEventListener('submit', async (event) => {
     event.preventDefault(); resetContactNotice();
     if (!contactForm.reportValidity()) return;
-    const data = Object.fromEntries(new FormData(contactForm).entries());
+    const formData = new FormData(contactForm);
+    const selectedFile = contactAttachment && contactAttachment.files ? contactAttachment.files[0] : null;
+    const data = Object.fromEntries(formData.entries());
+    delete data.archivo;
     for (const key of ['nombre','correo','asunto','consulta']) data[key] = String(data[key] || '').trim();
     data.correo = data.correo.toLowerCase();
     if (!data.nombre || !data.correo || !data.asunto || !data.consulta) return showContactNotice('Completa todos los campos antes de enviar.', false);
-    if (data.nombre.length>150 || data.correo.length>254 || data.asunto.length>180 || data.consulta.length>5000) return showContactNotice('Uno de los campos supera el límite permitido.', false);
-    contactSubmit.disabled=true; contactSubmit.setAttribute('aria-busy','true'); contactSubmit.textContent='Enviando…';
-    showContactNotice('Estamos enviando tu consulta.', false);
+    if (data.nombre.length > 150 || data.correo.length > 254 || data.asunto.length > 180 || data.consulta.length > 5000) return showContactNotice('Uno de los campos supera el límite permitido.', false);
+    if (selectedFile) {
+      if (!CONTACT_ATTACHMENT_TYPES.includes(selectedFile.type)) {
+        return showContactNotice('Formato no permitido. Adjunta un PDF, JPG, PNG o documento Word.', false);
+      }
+      if (selectedFile.size <= 0 || selectedFile.size > CONTACT_ATTACHMENT_MAX_BYTES) {
+        return showContactNotice('El archivo debe pesar más de 0 bytes y como máximo 5 MB.', false);
+      }
+    }
+    contactSubmit.disabled = true; contactSubmit.setAttribute('aria-busy','true'); contactSubmit.textContent = 'Enviando…';
+    showContactNotice(selectedFile ? 'Estamos enviando tu consulta y el archivo adjunto. No cierres esta página.' : 'Estamos enviando tu consulta.', false);
     try {
-      const response=await fetch(CONTACT_API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({accion:'registrarConsulta',datos:data})});
-      if(!response.ok) throw new Error('No fue posible conectar con el buzón. Intenta de nuevo.');
-      const result=await response.json();
-      if(!result || result.ok!==true) throw new Error(result&&result.error?result.error:'No se pudo registrar la consulta.');
-      contactForm.reset(); showContactNotice('¡Consulta recibida! Tu número de ticket es '+result.ticket+'. Guarda este número para futuras referencias.',true);
-    } catch(error) { showContactNotice(error&&error.message?error.message:'No se pudo enviar la consulta. Intenta nuevamente.',false); }
-    finally { contactSubmit.disabled=false; contactSubmit.removeAttribute('aria-busy'); contactSubmit.innerHTML='Enviar consulta <span aria-hidden="true">→</span>'; }
+      if (selectedFile) {
+        data.archivo = {
+          nombre: selectedFile.name,
+          tipo: selectedFile.type,
+          contenidoBase64: await fileToBase64(selectedFile)
+        };
+      }
+      const response = await fetch(CONTACT_API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ accion: 'registrarConsulta', datos: data })
+      });
+      if (!response.ok) throw new Error('No fue posible conectar con el buzón. Intenta de nuevo.');
+      const result = await response.json();
+      if (!result || result.ok !== true) throw new Error(result && result.error ? result.error : 'No se pudo registrar la consulta.');
+      contactForm.reset();
+      showContactNotice('¡Consulta recibida! Tu número de ticket es ' + result.ticket + '. Guarda este número para futuras referencias.', true);
+    } catch (error) {
+      showContactNotice(error && error.message ? error.message : 'No se pudo enviar la consulta. Intenta nuevamente.', false);
+    } finally {
+      contactSubmit.disabled = false;
+      contactSubmit.removeAttribute('aria-busy');
+      contactSubmit.innerHTML = 'Enviar consulta <span aria-hidden="true">→</span>';
+    }
   });
   function showContactNotice(message,success) {
     if(!contactAlert)return; contactAlert.hidden=false; contactAlert.dataset.persistent=success?'true':'false'; contactAlert.textContent=message;
@@ -1108,6 +1145,23 @@
       });
       const emailLink = document.getElementById('admin-mailbox-sender-email');
       if (emailLink) emailLink.href = message.correo ? 'mailto:' + message.correo : '#';
+      const attachmentsPanel = document.getElementById('admin-mailbox-attachments');
+      const attachmentsList = document.getElementById('admin-mailbox-attachments-list');
+      if (attachmentsPanel && attachmentsList) {
+        attachmentsList.replaceChildren();
+        const attachments = Array.isArray(message.archivos) ? message.archivos : [];
+        attachments.forEach((file) => {
+          if (!file || typeof file.url !== 'string' || !/^https:\/\//i.test(file.url)) return;
+          const link = document.createElement('a');
+          link.href = file.url;
+          link.target = '_blank';
+          link.rel = 'noopener noreferrer';
+          link.textContent = file.nombre || 'Abrir archivo adjunto';
+          link.className = 'admin-mailbox-attachment-link';
+          attachmentsList.appendChild(link);
+        });
+        attachmentsPanel.hidden = attachmentsList.childElementCount === 0;
+      }
       const previousReply = document.getElementById('admin-mailbox-previous-reply');
       if (previousReply) previousReply.hidden = !message.respuesta;
       if (adminMailboxReply) adminMailboxReply.value = '';
