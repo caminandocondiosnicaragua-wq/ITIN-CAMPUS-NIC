@@ -1182,16 +1182,16 @@ button, .button {
   .admin-mailbox-list{flex:1 1 auto;min-height:0;max-height:none;overflow-y:auto}
 }
 
-/* Portada: elimina el espacio visible entre la navegación fija y el carrusel en todos los tamaños. */
-.home-page { padding-top: 82px !important; }
+/* Portada: el encabezado fijo se superpone al hero sin dejar una franja vacía. */
+.home-page { padding-top: 0 !important; }
 .home-page .hero { margin-top: 0 !important; padding-top: 0 !important; }
 .home-page .campus-carousel { margin-top: 0 !important; }
 @media (max-width: 920px) {
-  .home-page { padding-top: 82px !important; }
+  .home-page { padding-top: 0 !important; }
   .home-page .hero { margin-top: 0 !important; padding-top: 0 !important; }
 }
 @media (max-width: 650px) {
-  .home-page { padding-top: 82px !important; }
+  .home-page { padding-top: 0 !important; }
   .home-page .hero { padding-top: 0 !important; }
 }
 
