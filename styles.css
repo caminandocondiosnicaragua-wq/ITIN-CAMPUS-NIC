@@ -1152,3 +1152,6 @@ button, .button {
 .admin-mailbox-delete:disabled{opacity:.55;cursor:wait}
 .admin-attachment-viewer-actions #admin-attachment-viewer-download{white-space:nowrap;text-decoration:none;display:inline-flex;align-items:center;justify-content:center}
 @media(max-width:600px){.admin-attachment-viewer-actions{width:100%}.admin-attachment-viewer-actions>*{flex:1}}
+
+/* Buzón: acceso a mensajes archivados */
+#admin-mailbox-archived-toggle { white-space: nowrap; }
