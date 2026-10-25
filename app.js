@@ -2614,6 +2614,29 @@
 
   // Agenda ITIN aislada: mantiene intactos el buzón y los demás módulos.
   const ADMIN_AGENDA_API_URL = 'https://script.google.com/macros/s/AKfycbyQizXsJrBxGFJLKUYAaOSx7Qlk-2IINAUWrLWX3d2KKDabidzehdB-bcjycMsaJKKJXA/exec';
+
+  async function agendaRequest(accion, datos) {
+    if (!adminCredential) throw new Error('Inicia sesión como administrador para usar la agenda.');
+    const response = await fetch(ADMIN_AGENDA_API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ accion, credential: adminCredential, ...(datos || {}) }),
+      redirect: 'follow'
+    });
+    const raw = await response.text();
+    let result;
+    try { result = JSON.parse(raw); }
+    catch (_) { throw new Error('La agenda respondió con un formato no válido. Revisa la implementación del servicio.'); }
+    if (!response.ok) throw new Error('La agenda respondió con el estado HTTP ' + response.status + '.');
+    if (result.ok === false) throw new Error(result.error || result.mensaje || result.resultado?.error || 'La API rechazó la solicitud.');
+    if (result.ok !== true && result.success !== true) throw new Error(result.error || result.mensaje || result.resultado?.error || 'La API no confirmó la operación.');
+    return result;
+  }
+  function agendaTitle(item) { return String(item.actividad || item.Actividad || item.titulo || item.title || item.nombre || item.Nombre || 'Actividad sin título'); }
+  function agendaStart(item) { return item.fechaInicio || item.FechaInicio || item.fecha_inicio || item.inicio || item.start || item.startDate || ''; }
+  function agendaState(item) { return String(item.estado || item.Estado || item.status || 'pendiente').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase(); }
+  function agendaTime(value) { if (!value) return 'Hora no especificada'; const date = new Date(value); if (Number.isNaN(date.getTime())) return String(value); return new Intl.DateTimeFormat('es-NI', { timeZone: 'America/Managua', hour: 'numeric', minute: '2-digit' }).format(date); }
+  function agendaLocalDate(value) { if (!value) return ''; const date = new Date(value); if (Number.isNaN(date.getTime())) return String(value).slice(0, 10); return new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Managua', year: 'numeric', month: '2-digit', day: '2-digit' }).format(date); }
   const agendaRoot=document.getElementById('admin-agenda-module'), agendaDialog=document.getElementById('admin-agenda-dialog'), agendaOpen=document.getElementById('admin-agenda-open'), agendaNew=document.getElementById('admin-agenda-new'), agendaClose=document.getElementById('admin-agenda-close'), agendaCount=document.getElementById('admin-agenda-count'), agendaMessage=document.getElementById('admin-agenda-message'), agendaStatus=document.getElementById('admin-agenda-status'), agendaList=document.getElementById('admin-agenda-today-list'), agendaForm=document.getElementById('admin-agenda-form'), agendaRefresh=document.getElementById('admin-agenda-refresh'), agendaHistory=document.getElementById('admin-agenda-history'), agendaCancel=document.getElementById('admin-agenda-cancel');
   let agendaItemsToday=[], agendaBusy=false, agendaLastItems=[], agendaActiveAlert=null;
   const agendaAlertedIds=new Set();
