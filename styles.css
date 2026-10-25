@@ -1101,3 +1101,10 @@ button, .button {
  #admin-mailbox-content:not([hidden]){padding:10px!important;align-items:flex-start!important}
  #admin-mailbox-content .admin-mailbox-window{max-height:calc(100vh - 20px)!important;padding:18px 12px!important}
 }
+
+
+/* Indicador de archivos adjuntos en cada consulta de la bandeja. */
+.admin-mailbox-item-title-row{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;min-width:0}
+.admin-mailbox-item-title-row>strong{min-width:0;flex:1}
+.admin-mailbox-attachment-indicator{display:inline-flex;flex:0 0 auto;align-items:center;justify-content:center;width:27px;height:27px;border:1px solid #d8c89f;border-radius:8px;background:#f5e8c7;color:#39432e;font-size:16px;line-height:1}
+.admin-mailbox-item.is-selected .admin-mailbox-attachment-indicator{background:#fff3cf;border-color:#e4d5ad}
