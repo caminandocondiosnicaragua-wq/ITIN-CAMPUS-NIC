@@ -1253,6 +1253,13 @@
     const isPdf = /\.pdf$/i.test(lower);
     const isWord = /\.(doc|docx)$/i.test(lower);
     if (adminAttachmentTitle) adminAttachmentTitle.textContent = name;
+    const downloadLink = document.getElementById('admin-attachment-viewer-download');
+    if (downloadLink) {
+      downloadLink.href = file.url;
+      downloadLink.download = name;
+      downloadLink.target = '_blank';
+      downloadLink.rel = 'noopener noreferrer';
+    }
     if (adminAttachmentNote) adminAttachmentNote.textContent = isWord
       ? 'Vista previa de Word. La impresión depende de que el visor de Office pueda abrir el archivo.'
       : 'Vista previa del archivo adjunto. Puedes imprimir sin descargarlo manualmente.';
@@ -1293,6 +1300,35 @@
     }
     adminAttachmentViewer.hidden = false;
   }
+
+  const adminMailboxDelete = document.getElementById('admin-mailbox-delete');
+  if (adminMailboxDelete) adminMailboxDelete.addEventListener('click', async () => {
+    if (!adminMailboxSelectedId) {
+      setAdminMailboxStatus('Selecciona primero una consulta para eliminar.', true);
+      return;
+    }
+    const selected = adminMailboxMessages.find(item => item.id === adminMailboxSelectedId);
+    if (!selected) return;
+    const name = String(selected.nombre || 'Consultante');
+    const hasAttachments = Array.isArray(selected.archivos) && selected.archivos.length > 0;
+    const warning = '¿Está seguro de que quiere eliminar el mensaje de: ' + name + '?' +
+      (hasAttachments ? '\n\nEste mensaje tiene ' + selected.archivos.length + ' archivo(s) adjunto(s). Al eliminar el mensaje, dejarán de estar disponibles desde el buzón.' : '');
+    if (!window.confirm(warning)) return;
+    adminMailboxDelete.disabled = true;
+    try {
+      await adminMailboxRequest({ accion: 'eliminarMensaje', id: adminMailboxSelectedId });
+      setAdminMailboxStatus('Mensaje eliminado.', false);
+      adminMailboxSelectedId = '';
+      if (adminMailboxDetail) adminMailboxDetail.hidden = true;
+      if (adminMailboxEmptyDetail) adminMailboxEmptyDetail.hidden = false;
+      if (adminMailboxPrint) adminMailboxPrint.disabled = true;
+      await loadAdminMailbox(false);
+    } catch (error) {
+      setAdminMailboxStatus(error.message || 'No se pudo eliminar el mensaje. Verifica que Apps Script admita la acción eliminarMensaje.', true);
+    } finally {
+      adminMailboxDelete.disabled = false;
+    }
+  });
 
   const adminAttachmentClose = document.getElementById('admin-attachment-viewer-close');
   const adminAttachmentPrint = document.getElementById('admin-attachment-viewer-print');
