@@ -1012,7 +1012,9 @@
   const adminMailbox = document.getElementById('admin-mailbox-module');
   const adminMailboxToggle = document.getElementById('admin-mailbox-toggle');
   const adminMailboxContent = document.getElementById('admin-mailbox-content');
-  const adminMailboxToggleCount = document.querySelector('.admin-mailbox-toggle-count');
+  const adminMailboxClose = document.getElementById('admin-mailbox-close');
+  const adminMailboxPrint = document.getElementById('admin-mailbox-print');
+  const adminMailboxToggleCount = document.getElementById('admin-mailbox-toggle-unread-count');
   const adminMailboxStatus = document.getElementById('admin-mailbox-status');
   const adminMailboxList = document.getElementById('admin-mailbox-list');
   const adminMailboxRefresh = document.getElementById('admin-mailbox-refresh');
@@ -1090,6 +1092,7 @@
   function updateAdminMailboxCount() {
     const unread = adminMailboxMessages.filter(message => message.estado === 'Nuevo').length;
     if (adminMailboxCount) adminMailboxCount.textContent = String(unread);
+    if (adminMailboxToggleCount) adminMailboxToggleCount.textContent = String(unread);
     if (adminMailboxCountLabel) adminMailboxCountLabel.textContent = unread === 1 ? 'consulta nueva' : 'consultas nuevas';
     if (adminMailboxTotal) adminMailboxTotal.textContent = adminMailboxMessages.length + (adminMailboxMessages.length === 1 ? ' mensaje' : ' mensajes');
   }
@@ -1112,6 +1115,7 @@
         adminMailboxSelectedId = '';
         if (adminMailboxDetail) adminMailboxDetail.hidden = true;
         if (adminMailboxEmptyDetail) adminMailboxEmptyDetail.hidden = false;
+      if (adminMailboxPrint) adminMailboxPrint.disabled = true;
       }
     } catch (error) {
       setAdminMailboxStatus(error.message || 'No se pudo cargar el buzón.', true);
@@ -1119,6 +1123,37 @@
       adminMailboxBusy = false;
       if (adminMailboxRefresh) adminMailboxRefresh.disabled = false;
     }
+  }
+
+  function printAdminMailboxMessage() {
+    if (!adminMailboxSelectedId || !adminMailboxDetail || adminMailboxDetail.hidden) {
+      setAdminMailboxStatus('Selecciona primero una consulta para imprimir.', true);
+      return;
+    }
+    const textOf = (id) => {
+      const el = document.getElementById(id);
+      return el ? el.textContent.trim() : '';
+    };
+    const safe = (value) => String(value || '').replace(/[&<>"]/g, ch => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'
+    }[ch]));
+    const ticket = textOf('admin-mailbox-ticket');
+    const subject = textOf('admin-mailbox-subject');
+    const name = textOf('admin-mailbox-sender-name');
+    const email = textOf('admin-mailbox-sender-email');
+    const received = textOf('admin-mailbox-received');
+    const query = textOf('admin-mailbox-query');
+    const state = textOf('admin-mailbox-state');
+    const reply = textOf('admin-mailbox-previous-reply-text');
+    const replyDate = textOf('admin-mailbox-reply-date');
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      setAdminMailboxStatus('El navegador bloqueó la ventana de impresión. Permite ventanas emergentes para este sitio e inténtalo de nuevo.', true);
+      return;
+    }
+    printWindow.document.open();
+    printWindow.document.write('<!doctype html><html lang="es"><head><meta charset="utf-8"><title>' + safe(ticket) + ' · ' + safe(subject) + '</title><style>body{font:14px/1.65 Arial,sans-serif;color:#222;margin:32px}h1{font:24px Georgia,serif;margin:0 0 8px;color:#333c2c}h2{font-size:18px;margin:22px 0 8px}small,.muted{color:#555}header{border-bottom:3px solid #39432e;padding-bottom:16px;margin-bottom:18px}.meta{display:grid;grid-template-columns:1fr 1fr;gap:8px 18px}.message{white-space:pre-wrap;overflow-wrap:anywhere;border:1px solid #ddd;padding:16px;border-radius:8px}.reply{margin-top:18px;padding:14px;background:#f4f3ed;border-left:4px solid #39432e;white-space:pre-wrap}footer{margin-top:28px;font-size:11px;color:#666}@media print{body{margin:15mm}button{display:none}}</style></head><body><header><h1>ITIN CAMPUS · Buzón de consultas</h1><div>' + safe(ticket) + ' · ' + safe(state) + '</div></header><h2>' + safe(subject) + '</h2><div class="meta"><div><b>Remitente:</b> ' + safe(name) + '</div><div><b>Correo:</b> ' + safe(email) + '</div><div><b>Recepción:</b> ' + safe(received) + '</div></div><h2>Consulta</h2><div class="message">' + safe(query) + '</div>' + (reply ? '<section class="reply"><b>Respuesta registrada</b><p>' + safe(reply) + '</p><small>' + safe(replyDate) + '</small></section>' : '') + '<footer>Documento generado desde el buzón administrativo de ITIN CAMPUS.</footer><script>window.addEventListener("load",function(){window.focus();window.print();});<\/script></body></html>');
+    printWindow.document.close();
   }
 
   async function openAdminMailboxMessage(id, quiet) {
@@ -1167,6 +1202,7 @@
       if (adminMailboxReply) adminMailboxReply.value = '';
       if (adminMailboxDetail) adminMailboxDetail.hidden = false;
       if (adminMailboxEmptyDetail) adminMailboxEmptyDetail.hidden = true;
+      if (adminMailboxPrint) adminMailboxPrint.disabled = false;
       renderAdminMailboxList();
       setAdminMailboxStatus('Consulta ' + (message.ticket || '') + ' abierta.', false);
       // Actualiza el estado "Nuevo" a "En revisión" en el contador y en la lista.
@@ -1179,20 +1215,32 @@
     }
   }
 
+  function closeAdminMailbox() {
+    if (!adminMailboxContent || adminMailboxContent.hidden) return;
+    adminMailboxContent.hidden = true;
+    adminMailboxToggle && adminMailboxToggle.setAttribute('aria-expanded', 'false');
+    document.body.classList.remove('admin-mailbox-open');
+    if (adminMailboxToggle) adminMailboxToggle.focus();
+  }
   if (adminMailboxToggle && adminMailboxContent) {
     adminMailboxToggle.addEventListener('click', () => {
-      const opening = adminMailboxContent.hidden;
-      adminMailboxContent.hidden = !opening;
-      adminMailboxToggle.setAttribute('aria-expanded', String(opening));
-      adminMailbox && adminMailbox.classList.toggle('is-open', opening);
-      if (adminMailboxToggleCount) adminMailboxToggleCount.hidden = opening;
-      if (opening) {
-        if (!adminCredential) setAdminMailboxStatus('Inicia sesión como administrador para consultar el buzón.', true);
-        else loadAdminMailbox();
-      }
+      adminMailboxContent.hidden = false;
+      adminMailboxToggle.setAttribute('aria-expanded', 'true');
+      document.body.classList.add('admin-mailbox-open');
+      if (!adminCredential) setAdminMailboxStatus('Inicia sesión como administrador para consultar el buzón.', true);
+      else loadAdminMailbox();
+      window.setTimeout(() => adminMailboxClose && adminMailboxClose.focus(), 0);
     });
   }
+  if (adminMailboxClose) adminMailboxClose.addEventListener('click', closeAdminMailbox);
+  if (adminMailboxContent) adminMailboxContent.addEventListener('click', (event) => {
+    if (event.target === adminMailboxContent) closeAdminMailbox();
+  });
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && adminMailboxContent && !adminMailboxContent.hidden) closeAdminMailbox();
+  });
   if (adminMailboxRefresh) adminMailboxRefresh.addEventListener('click', () => loadAdminMailbox(true));
+  if (adminMailboxPrint) adminMailboxPrint.addEventListener('click', printAdminMailboxMessage);
   if (adminMailboxReplyForm) adminMailboxReplyForm.addEventListener('submit', async (event) => {
     event.preventDefault();
     const texto = String(adminMailboxReply && adminMailboxReply.value || '').trim();
