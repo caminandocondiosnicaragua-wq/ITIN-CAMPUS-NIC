@@ -1009,6 +1009,11 @@
       document.querySelector('#admin-module-description').textContent = info.description;
       adminDashboard.querySelector('.admin-card-grid').hidden = true;
       adminModuleView.hidden = false;
+      // En modo de trabajo se ocultan los accesos globales para dejar espacio al módulo activo.
+      const adminMailboxModule = document.getElementById('admin-mailbox-module');
+      const adminAgendaModule = document.getElementById('admin-agenda-module');
+      if (adminMailboxModule) adminMailboxModule.hidden = true;
+      if (adminAgendaModule) adminAgendaModule.hidden = true;
       const isSolicitudes = card.dataset.adminModule === 'solicitudes';
       if (adminSolicitudesTools) adminSolicitudesTools.hidden = !isSolicitudes;
       if (adminModulePlaceholder) adminModulePlaceholder.hidden = isSolicitudes;
@@ -1019,6 +1024,10 @@
     adminBackButton.addEventListener('click', () => {
       adminModuleView.hidden = true;
       adminDashboard.querySelector('.admin-card-grid').hidden = false;
+      const adminMailboxModule = document.getElementById('admin-mailbox-module');
+      const adminAgendaModule = document.getElementById('admin-agenda-module');
+      if (adminMailboxModule) adminMailboxModule.hidden = false;
+      if (adminAgendaModule) adminAgendaModule.hidden = false;
     });
   }
 
