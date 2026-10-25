@@ -1304,30 +1304,47 @@
   const adminMailboxDelete = document.getElementById('admin-mailbox-delete');
   if (adminMailboxDelete) adminMailboxDelete.addEventListener('click', async () => {
     if (!adminMailboxSelectedId) {
-      setAdminMailboxStatus('Selecciona primero una consulta para eliminar.', true);
+      setAdminMailboxStatus('Selecciona primero una consulta.', true);
       return;
     }
     const selected = adminMailboxMessages.find(item => item.id === adminMailboxSelectedId);
     if (!selected) return;
-    const name = String(selected.nombre || 'Consultante');
-    const hasAttachments = Array.isArray(selected.archivos) && selected.archivos.length > 0;
-    const warning = '¿Está seguro de que quiere eliminar el mensaje de: ' + name + '?' +
-      (hasAttachments ? '\n\nEste mensaje tiene ' + selected.archivos.length + ' archivo(s) adjunto(s). Al eliminar el mensaje, dejarán de estar disponibles desde el buzón.' : '');
-    if (!window.confirm(warning)) return;
+    const archivar = adminMailboxView !== 'archived';
+    const accion = archivar ? 'archivarMensaje' : 'restaurarMensaje';
+    const operacion = archivar ? 'archivar' : 'restaurar';
+    if (!window.confirm('¿Deseas ' + operacion + ' la consulta de ' + String(selected.nombre || 'Consultante') + '?')) return;
     adminMailboxDelete.disabled = true;
     try {
-      await adminMailboxRequest({ accion: 'eliminarMensaje', id: adminMailboxSelectedId });
-      setAdminMailboxStatus('Mensaje eliminado.', false);
+      await adminMailboxRequest({ accion, id: adminMailboxSelectedId });
+      setAdminMailboxStatus(archivar ? 'Consulta archivada. Puedes recuperarla desde Archivados.' : 'Consulta restaurada a la bandeja de entrada.', false);
       adminMailboxSelectedId = '';
       if (adminMailboxDetail) adminMailboxDetail.hidden = true;
       if (adminMailboxEmptyDetail) adminMailboxEmptyDetail.hidden = false;
       if (adminMailboxPrint) adminMailboxPrint.disabled = true;
       await loadAdminMailbox(false);
     } catch (error) {
-      setAdminMailboxStatus(error.message || 'No se pudo eliminar el mensaje. Verifica que Apps Script admita la acción eliminarMensaje.', true);
+      setAdminMailboxStatus(error.message || 'No se pudo completar la operación. Verifica que Apps Script esté guardado y publicado.', true);
     } finally {
       adminMailboxDelete.disabled = false;
     }
+  });
+
+  const adminMailboxArchivedToggle = document.getElementById('admin-mailbox-archived-toggle');
+  if (adminMailboxArchivedToggle) adminMailboxArchivedToggle.addEventListener('click', async () => {
+    adminMailboxView = adminMailboxView === 'inbox' ? 'archived' : 'inbox';
+    adminMailboxArchivedToggle.textContent = adminMailboxView === 'archived' ? '↩ Bandeja de entrada' : '▣ Archivados';
+    const heading = document.querySelector('.admin-mailbox-list-heading strong');
+    if (heading) heading.textContent = adminMailboxView === 'archived' ? 'Mensajes archivados' : 'Bandeja de entrada';
+    if (adminMailboxDelete) {
+      adminMailboxDelete.textContent = adminMailboxView === 'archived' ? '↩ Restaurar' : '▣ Archivar';
+      adminMailboxDelete.title = adminMailboxView === 'archived' ? 'Restaurar consulta seleccionada' : 'Archivar consulta seleccionada';
+      adminMailboxDelete.setAttribute('aria-label', adminMailboxDelete.title);
+    }
+    adminMailboxSelectedId = '';
+    if (adminMailboxDetail) adminMailboxDetail.hidden = true;
+    if (adminMailboxEmptyDetail) adminMailboxEmptyDetail.hidden = false;
+    if (adminMailboxPrint) adminMailboxPrint.disabled = true;
+    await loadAdminMailbox(false);
   });
 
   const adminAttachmentClose = document.getElementById('admin-attachment-viewer-close');
