@@ -1199,3 +1199,51 @@ button, .button {
 #contact-consulta-help{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
 #contact-consulta-counter{font-variant-numeric:tabular-nums;color:var(--brown);font-weight:700;white-space:nowrap}
 #contact-consulta-counter.is-limit-reached{color:#b53a32}
+
+
+/* Agenda administrativa ITIN: estilos aislados */
+.admin-agenda-module{margin:0 0 24px;display:flex;justify-content:flex-end;align-items:stretch}
+.admin-agenda-sticker{width:min(100%,420px);min-height:310px;box-sizing:border-box;padding:18px 20px 16px;border:1px solid #d7b65e;border-radius:24px;background:linear-gradient(145deg,#fff1c9 0%,#f6e5b7 52%,#e8d49a 100%);box-shadow:0 12px 30px rgba(91,72,24,.13);display:flex;flex-direction:column;gap:12px;color:#4b4c24}
+.admin-agenda-sticker-open{display:flex;flex:1;flex-direction:column;gap:12px;width:100%;padding:0;border:0;background:transparent;color:inherit;text-align:left;cursor:pointer}
+.admin-agenda-sticker-label{font-size:15px;font-weight:850;letter-spacing:.07em;color:#96701a}
+.admin-agenda-sticker-main{display:grid;grid-template-columns:minmax(110px,.9fr) minmax(0,1.1fr);gap:10px;align-items:center;flex:1}
+.admin-agenda-sticker-main>img{display:block;width:100%;max-width:150px;max-height:170px;object-fit:contain;filter:drop-shadow(0 7px 7px rgba(55,45,17,.16))}
+.admin-agenda-count-wrap{min-height:150px;padding:12px 10px;border-radius:22px;background:rgba(255,255,255,.72);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:4px}
+.admin-agenda-count-wrap strong{font-size:clamp(48px,5vw,72px);line-height:.95;font-weight:900;color:#565a2c;font-variant-numeric:tabular-nums}
+.admin-agenda-count-wrap span{font-size:15px;line-height:1.35;font-weight:750;color:#62521f}
+.admin-agenda-schedule{width:100%;border:0;border-radius:16px;padding:13px 14px;background:#565b2c;color:#fffdf3;font-size:15px;font-weight:800;cursor:pointer;box-shadow:0 4px 0 rgba(53,58,28,.14);transition:transform .16s ease,background .16s ease}
+.admin-agenda-schedule:hover{background:#414622;transform:translateY(-1px)}
+.admin-agenda-sticker-open:focus-visible,.admin-agenda-schedule:focus-visible,.admin-agenda-close:focus-visible,.admin-agenda-done:focus-visible{outline:3px solid #b98a24;outline-offset:3px}
+.admin-agenda-overlay[hidden],.admin-agenda-form[hidden],.admin-agenda-status[hidden],.admin-agenda-today-list[hidden],.admin-agenda-refresh[hidden]{display:none!important}
+.admin-agenda-overlay{position:fixed;inset:0;z-index:10050;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(36,34,22,.48);backdrop-filter:blur(4px)}
+.admin-agenda-window{position:relative;box-sizing:border-box;width:min(640px,calc(100vw - 32px));max-height:min(82vh,760px);overflow:auto;padding:26px;border:1px solid #d7bd7b;border-radius:24px;background:#fffaf0;box-shadow:0 24px 80px rgba(25,24,14,.28);color:#393a27}
+.admin-agenda-close{position:absolute;right:15px;top:14px;width:40px;height:40px;border:1px solid #dfcda3;border-radius:50%;background:#fffdf8;color:#4b4c30;font-size:20px;font-weight:800;cursor:pointer}
+.admin-agenda-heading{display:flex;align-items:center;gap:16px;padding-right:45px;margin-bottom:14px}
+.admin-agenda-heading>img{width:94px;height:94px;object-fit:contain;flex-shrink:0}
+.admin-agenda-eyebrow{margin:0 0 4px;color:#9a7824;font-size:11px;font-weight:850;letter-spacing:.12em}
+.admin-agenda-heading h2{margin:0;color:#4c5129;font-family:Georgia,serif;font-size:27px}
+.admin-agenda-heading p:last-child{margin:6px 0 0;color:#69664f;font-size:14px}
+.admin-agenda-status{margin:10px 0;padding:11px 13px;border-radius:12px;background:#f6edda;color:#60562f;font-size:13px}
+.admin-agenda-today-list{display:grid;gap:12px}
+.admin-agenda-item{display:grid;grid-template-columns:54px minmax(0,1fr) auto;align-items:center;gap:12px;padding:13px;border:1px solid #e6d9ba;border-radius:16px;background:#fffdf8}
+.admin-agenda-item-robot{width:52px;height:52px;object-fit:contain}
+.admin-agenda-item-speech{margin:0;color:#3f4428;font-size:14px;font-weight:750;line-height:1.4;overflow-wrap:anywhere}
+.admin-agenda-item-time{margin:6px 0 0;color:#86713a;font-size:12px;font-weight:700}
+.admin-agenda-done{border:1px solid #c8d9bf;border-radius:12px;padding:10px 12px;background:#edf5e9;color:#355b35;font-size:12px;font-weight:800;cursor:pointer}
+.admin-agenda-done:disabled{opacity:.6;cursor:wait}
+.admin-agenda-empty{display:flex;align-items:center;gap:14px;padding:16px;border:1px dashed #d9c995;border-radius:16px;background:#fffdf8}
+.admin-agenda-empty img{width:76px;height:76px;object-fit:contain}
+.admin-agenda-empty p{margin:0;color:#55563a;line-height:1.5}
+.admin-agenda-refresh,.admin-agenda-cancel{margin-top:12px;border:1px solid #dfd2b3;border-radius:12px;padding:10px 13px;background:#fffdf8;color:#56533d;font-weight:750;cursor:pointer}
+.admin-agenda-form{display:grid;gap:14px;margin-top:14px}
+.admin-agenda-form h3{margin:0;color:#4c5129;font-family:Georgia,serif;font-size:22px}
+.admin-agenda-form label{display:grid;gap:6px;color:#55543c;font-size:13px;font-weight:750}
+.admin-agenda-form input,.admin-agenda-form textarea{box-sizing:border-box;width:100%;border:1px solid #d9cba8;border-radius:11px;padding:11px 12px;background:#fffefa;color:#333;font:inherit;font-weight:400}
+.admin-agenda-date-fields{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.admin-agenda-form-actions{display:flex;gap:10px;flex-wrap:wrap}
+.admin-agenda-form-actions .admin-agenda-schedule{width:auto;min-width:180px}
+.admin-agenda-form-actions .admin-agenda-cancel{margin-top:0}
+body.admin-agenda-open{overflow:hidden}
+@media(min-width:900px){#admin-dashboard>.admin-mailbox-module{width:calc(100% - 444px);float:left;margin-bottom:24px}#admin-dashboard>.admin-agenda-module{width:420px;float:right;margin-bottom:24px}#admin-dashboard>.admin-card-grid{clear:both}}
+@media(max-width:899px){.admin-agenda-module{justify-content:stretch}.admin-agenda-sticker{width:100%;max-width:420px;margin-inline:auto;min-height:285px}}
+@media(max-width:520px){.admin-agenda-window{padding:20px 15px}.admin-agenda-heading>img{width:68px;height:68px}.admin-agenda-heading h2{font-size:23px}.admin-agenda-item{grid-template-columns:42px minmax(0,1fr);gap:9px}.admin-agenda-item-robot{width:42px;height:42px}.admin-agenda-done{grid-column:2;justify-self:start}.admin-agenda-date-fields{grid-template-columns:1fr}.admin-agenda-sticker{min-height:270px;padding:16px}.admin-agenda-count-wrap{min-height:125px}.admin-agenda-count-wrap span{font-size:13px}}
