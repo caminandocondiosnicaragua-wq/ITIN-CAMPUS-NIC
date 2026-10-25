@@ -1142,3 +1142,13 @@ button, .button {
 .admin-mailbox-item-meta{font-size:9px;line-height:1.3}
 .admin-mailbox-item-state{padding:2px 6px;font-size:9px;line-height:1.3}
 @media(max-width:600px){.admin-mailbox-item{padding:8px 9px}.admin-mailbox-item.is-unread{padding-left:6px}}
+
+
+/* Acciones de la consulta seleccionada y descarga del adjunto. */
+.admin-mailbox-detail-top{position:relative}
+.admin-mailbox-detail-actions{display:flex;justify-content:flex-end;gap:8px;margin:0 0 10px}
+.admin-mailbox-delete{border:1px solid #e5b4ad;border-radius:10px;padding:7px 10px;background:#fff3f1;color:#a52c25;font:inherit;font-size:11px;font-weight:700;cursor:pointer}
+.admin-mailbox-delete:hover{background:#ffe4e0}
+.admin-mailbox-delete:disabled{opacity:.55;cursor:wait}
+.admin-attachment-viewer-actions #admin-attachment-viewer-download{white-space:nowrap;text-decoration:none;display:inline-flex;align-items:center;justify-content:center}
+@media(max-width:600px){.admin-attachment-viewer-actions{width:100%}.admin-attachment-viewer-actions>*{flex:1}}
