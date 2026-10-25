@@ -1194,3 +1194,8 @@ button, .button {
   .home-page { padding-top: 82px !important; }
   .home-page .hero { padding-top: 0 !important; }
 }
+
+/* Contador del campo público de consulta: solo afecta este campo. */
+#contact-consulta-help{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+#contact-consulta-counter{font-variant-numeric:tabular-nums;color:var(--brown);font-weight:700;white-space:nowrap}
+#contact-consulta-counter.is-limit-reached{color:#b53a32}
