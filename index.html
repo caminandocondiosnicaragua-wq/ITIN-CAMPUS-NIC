@@ -299,9 +299,10 @@
   <div class="admin-mailbox-toolbar">
     <p id="admin-mailbox-status" role="status" aria-live="polite">Preparando buzón…</p>
     <div class="admin-mailbox-toolbar-actions">
-      <button type="button" class="button button-quiet" id="admin-mailbox-print" disabled>▤ Imprimir mensaje</button>
-      <button type="button" class="button button-quiet" id="admin-mailbox-archived-toggle">▣ Archivados</button>
-      <button type="button" class="button button-quiet" id="admin-mailbox-refresh">↻ Actualizar</button>
+      <button type="button" class="button button-quiet admin-mailbox-print-action" id="admin-mailbox-print" disabled>▤ Imprimir mensaje</button>
+      <button type="button" class="button button-quiet admin-mailbox-delete" id="admin-mailbox-delete" title="Archivar consulta seleccionada" aria-label="Archivar consulta seleccionada">▣ Archivar</button>
+      <button type="button" class="button button-quiet admin-mailbox-archived-toggle" id="admin-mailbox-archived-toggle">▣ Archivados</button>
+      <button type="button" class="button button-quiet admin-mailbox-refresh-action" id="admin-mailbox-refresh">↻ Actualizar</button>
     </div>
   </div>
   <div class="admin-mailbox-workspace">
@@ -312,8 +313,7 @@
     <section class="admin-mailbox-message-panel" aria-label="Consulta seleccionada">
       <div id="admin-mailbox-empty-detail" class="admin-mailbox-empty-detail"><span aria-hidden="true">✉</span><strong>Selecciona una consulta</strong><p>El contenido del mensaje aparecerá aquí para que puedas leerlo y responder.</p></div>
       <article id="admin-mailbox-detail" class="admin-mailbox-detail" hidden>
-        <div class="admin-mailbox-detail-top"><div class="admin-mailbox-detail-actions"><button type="button" id="admin-mailbox-delete" class="admin-mailbox-delete" title="Archivar consulta seleccionada" aria-label="Archivar consulta seleccionada">▣ Archivar</button></div>
-<div><p id="admin-mailbox-ticket" class="admin-mailbox-ticket"></p><h3 id="admin-mailbox-subject"></h3></div><span id="admin-mailbox-state" class="admin-mailbox-state"></span></div>
+        <div class="admin-mailbox-detail-top"><div><p id="admin-mailbox-ticket" class="admin-mailbox-ticket"></p><h3 id="admin-mailbox-subject"></h3></div><span id="admin-mailbox-state" class="admin-mailbox-state"></span></div>
         <div class="admin-mailbox-sender"><strong id="admin-mailbox-sender-name"></strong><a id="admin-mailbox-sender-email" href="#"></a><time id="admin-mailbox-received"></time></div>
         <div id="admin-mailbox-query" class="admin-mailbox-query"></div>
         <section id="admin-mailbox-attachments" class="admin-mailbox-attachments" aria-label="Archivos adjuntos" hidden><strong>Archivos adjuntos</strong><div id="admin-mailbox-attachments-list"></div></section>
