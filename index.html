@@ -8,10 +8,10 @@
   <title>ITIN CAMPUS | Formación bíblica y teológica</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=20261025-contactfiles1">
+  <link rel="stylesheet" href="styles.css?v=20261025-mailmodal1">
   <link rel="stylesheet" href="academico.css?v=20261023d">
   <script src="https://accounts.google.com/gsi/client" defer></script>
-  <script src="app.js?v=20261025-contactfiles1" defer></script>
+  <script src="app.js?v=20261025-mailmodal1" defer></script>
   <script src="academico.js?v=20261023d" defer></script>
   <script src="hero-carousel.js?v=20261023c" defer></script>
 <script>
@@ -263,12 +263,14 @@
 <section class="page-section admin-page" id="admin" data-section="admin" hidden><div class="page-intro admin-intro"><p class="eyebrow">ÁREA INSTITUCIONAL PROTEGIDA</p><h1>Administración ITIN</h1><p>Acceso exclusivo para personal autorizado.</p></div><div class="admin-lock" id="admin-login-panel"><span class="lock-icon" aria-hidden="true">⌑</span><p class="eyebrow">INICIO DE SESIÓN</p><h2>Acceso administrativo</h2><p>Inicia sesión con Google. El servidor deberá verificar la credencial antes de habilitar el panel.</p><div id="google-login-button" class="google-login-button"></div><p id="admin-login-status" class="admin-status" role="status" aria-live="polite">Todavía no has iniciado sesión.</p><a class="button button-quiet" href="#inicio">Volver al inicio</a></div><div id="admin-dashboard" class="admin-dashboard" hidden><div class="admin-session-bar"><div><span class="admin-session-dot"></span><span id="admin-session-email"></span><small>Sesión verificada</small></div><button type="button" class="button button-quiet" id="admin-signout">Cerrar sesión</button></div>
 <section id="admin-mailbox-module" class="admin-mailbox-module" aria-labelledby="admin-mailbox-title">
   <button type="button" class="admin-mailbox-toggle" id="admin-mailbox-toggle" aria-expanded="false" aria-controls="admin-mailbox-content">
-    <span class="admin-mailbox-toggle-icon" aria-hidden="true">✉</span>
+    <img class="admin-mailbox-toggle-robot" src="img/Robot%20Mascota%20Institucional%20Sonriente.png" alt="" aria-hidden="true">
     <span class="admin-mailbox-toggle-copy"><strong>Buzón de consultas</strong><small>Mensajes recibidos desde Contacto</small></span>
-    <span class="admin-mailbox-toggle-count"><span id="admin-mailbox-unread-count">—</span> nuevas</span>
+    <span class="admin-mailbox-toggle-count"><span id="admin-mailbox-toggle-unread-count">—</span> nuevas</span>
     <span class="admin-mailbox-toggle-chevron" aria-hidden="true">⌄</span>
   </button>
-  <div class="admin-mailbox-content" id="admin-mailbox-content" hidden>
+  <div class="admin-mailbox-content" id="admin-mailbox-content" hidden role="dialog" aria-modal="true" aria-labelledby="admin-mailbox-title" tabindex="-1">
+  <div class="admin-mailbox-window">
+  <button type="button" class="admin-mailbox-close" id="admin-mailbox-close" aria-label="Cerrar buzón" title="Cerrar buzón">×</button>
   <div class="admin-mailbox-intro">
     <div class="admin-mailbox-robot">
       <img src="img/Robot%20Mascota%20Institucional%20Sonriente.png" alt="Robot asistente de ITIN CAMPUS">
@@ -283,7 +285,10 @@
   </div>
   <div class="admin-mailbox-toolbar">
     <p id="admin-mailbox-status" role="status" aria-live="polite">Preparando buzón…</p>
-    <button type="button" class="button button-quiet" id="admin-mailbox-refresh">↻ Actualizar</button>
+    <div class="admin-mailbox-toolbar-actions">
+      <button type="button" class="button button-quiet" id="admin-mailbox-print" disabled>▤ Imprimir mensaje</button>
+      <button type="button" class="button button-quiet" id="admin-mailbox-refresh">↻ Actualizar</button>
+    </div>
   </div>
   <div class="admin-mailbox-workspace">
     <aside class="admin-mailbox-list-panel" aria-label="Lista de consultas">
@@ -304,6 +309,7 @@
         </form>
       </article>
     </section>
+  </div>
   </div>
   </div>
 </section><div class="admin-card-grid"><button type="button" class="admin-module-card" data-admin-module="solicitudes"><span class="admin-module-icon">▤</span><span class="admin-module-number">01 / ADMISIONES</span><strong>Solicitudes y consultas</strong><small>Solicitudes de ingreso, expedientes y estudiantes activos.</small><span class="admin-module-link">Abrir módulo ↗</span></button><button type="button" class="admin-module-card" data-admin-module="matriculas"><span class="admin-module-icon">▣</span><span class="admin-module-number">02 / REGISTRO</span><strong>Matrículas</strong><small>Registrar y consultar matrículas.</small><span class="admin-module-link">Abrir módulo ↗</span></button><button type="button" class="admin-module-card" data-admin-module="pagos"><span class="admin-module-icon">$</span><span class="admin-module-number">03 / FINANZAS</span><strong>Gestión de pagos</strong><small>Pagos realizados, recibos y saldos.</small><span class="admin-module-link">Abrir módulo ↗</span></button><button type="button" class="admin-module-card" data-admin-module="academico"><span class="admin-module-icon">✦</span><span class="admin-module-number">04 / CONFIGURACIÓN</span><strong>Control académico</strong><small>Programas, clases, profesores y precios.</small><span class="admin-module-link">Abrir módulo ↗</span></button></div><section class="admin-module-view" id="admin-module-view" hidden aria-live="polite"><button type="button" class="text-link" id="admin-back-dashboard">← Volver al panel</button><p class="eyebrow" id="admin-module-kicker">MÓDULO ADMINISTRATIVO</p><h2 id="admin-module-title"></h2><p id="admin-module-description"></p><div id="admin-solicitudes-tools" class="admin-data-tools" hidden>
