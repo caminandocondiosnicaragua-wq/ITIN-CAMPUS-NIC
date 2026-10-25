@@ -8,10 +8,10 @@
   <title>ITIN CAMPUS | Formación bíblica y teológica</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=20261025-mailmodal6">
+  <link rel="stylesheet" href="styles.css?v=20261025-mailmodal7">
   <link rel="stylesheet" href="academico.css?v=20261023d">
   <script src="https://accounts.google.com/gsi/client" defer></script>
-  <script src="app.js?v=20261025-mailmodal6" defer></script>
+  <script src="app.js?v=20261025-mailmodal7" defer></script>
   <script src="academico.js?v=20261023d" defer></script>
   <script src="hero-carousel.js?v=20261023c" defer></script>
 <script>
@@ -274,6 +274,7 @@
       <header class="admin-attachment-viewer-header">
         <div><strong id="admin-attachment-viewer-title">Archivo adjunto</strong><small id="admin-attachment-viewer-note">Vista previa del archivo</small></div>
         <div class="admin-attachment-viewer-actions">
+          <a class="button button-quiet" id="admin-attachment-viewer-download" href="#" download>Descargar archivo</a>
           <button type="button" class="button button-primary" id="admin-attachment-viewer-print">Imprimir</button>
           <button type="button" class="button button-quiet" id="admin-attachment-viewer-close" aria-label="Cerrar vista previa">Cerrar ×</button>
         </div>
@@ -310,7 +311,8 @@
     <section class="admin-mailbox-message-panel" aria-label="Consulta seleccionada">
       <div id="admin-mailbox-empty-detail" class="admin-mailbox-empty-detail"><span aria-hidden="true">✉</span><strong>Selecciona una consulta</strong><p>El contenido del mensaje aparecerá aquí para que puedas leerlo y responder.</p></div>
       <article id="admin-mailbox-detail" class="admin-mailbox-detail" hidden>
-        <div class="admin-mailbox-detail-top"><div><p id="admin-mailbox-ticket" class="admin-mailbox-ticket"></p><h3 id="admin-mailbox-subject"></h3></div><span id="admin-mailbox-state" class="admin-mailbox-state"></span></div>
+        <div class="admin-mailbox-detail-top"><div class="admin-mailbox-detail-actions"><button type="button" id="admin-mailbox-delete" class="admin-mailbox-delete" title="Eliminar consulta seleccionada" aria-label="Eliminar consulta seleccionada">🗑 Eliminar</button></div>
+<div><p id="admin-mailbox-ticket" class="admin-mailbox-ticket"></p><h3 id="admin-mailbox-subject"></h3></div><span id="admin-mailbox-state" class="admin-mailbox-state"></span></div>
         <div class="admin-mailbox-sender"><strong id="admin-mailbox-sender-name"></strong><a id="admin-mailbox-sender-email" href="#"></a><time id="admin-mailbox-received"></time></div>
         <div id="admin-mailbox-query" class="admin-mailbox-query"></div>
         <section id="admin-mailbox-attachments" class="admin-mailbox-attachments" aria-label="Archivos adjuntos" hidden><strong>Archivos adjuntos</strong><div id="admin-mailbox-attachments-list"></div></section>
