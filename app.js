@@ -1072,8 +1072,21 @@
       button.type = 'button';
       button.className = 'admin-mailbox-item' + (message.id === adminMailboxSelectedId ? ' is-selected' : '') + (message.estado === 'Nuevo' ? ' is-unread' : '');
       button.setAttribute('aria-pressed', String(message.id === adminMailboxSelectedId));
+      const titleRow = document.createElement('span');
+      titleRow.className = 'admin-mailbox-item-title-row';
       const title = document.createElement('strong');
       title.textContent = message.nombre || 'Consultante';
+      titleRow.appendChild(title);
+      const hasAttachments = Array.isArray(message.archivos) && message.archivos.length > 0;
+      if (hasAttachments) {
+        const attachmentMark = document.createElement('span');
+        attachmentMark.className = 'admin-mailbox-attachment-indicator';
+        attachmentMark.textContent = '📎';
+        attachmentMark.setAttribute('role', 'img');
+        attachmentMark.setAttribute('aria-label', 'Tiene archivos adjuntos');
+        attachmentMark.title = message.archivos.length === 1 ? '1 archivo adjunto' : message.archivos.length + ' archivos adjuntos';
+        titleRow.appendChild(attachmentMark);
+      }
       const subject = document.createElement('span');
       subject.className = 'admin-mailbox-item-subject';
       subject.textContent = message.asunto || '(Sin asunto)';
@@ -1083,7 +1096,7 @@
       const state = document.createElement('span');
       state.className = 'admin-mailbox-item-state';
       state.textContent = message.estado || 'Sin estado';
-      button.append(title, subject, meta, state);
+      button.append(titleRow, subject, meta, state);
       button.addEventListener('click', () => openAdminMailboxMessage(message.id));
       adminMailboxList.appendChild(button);
     });
