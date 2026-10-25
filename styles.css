@@ -1025,3 +1025,11 @@ button, .button {
 .admin-mailbox-intro{grid-template-columns:minmax(90px,130px) minmax(0,1fr) auto}
 .admin-mailbox-robot img{width:min(100%,105px);max-height:110px}
 @media(max-width:650px){.admin-mailbox-toggle{gap:9px;padding:12px}.admin-mailbox-toggle-icon{flex-basis:36px;height:36px}.admin-mailbox-toggle-copy small{max-width:170px}.admin-mailbox-toggle-count{padding:6px 8px;font-size:10px}.admin-mailbox-content{padding:12px}.admin-mailbox-intro{grid-template-columns:1fr auto}.admin-mailbox-robot{display:none}.admin-mailbox-heading{grid-column:1/-1;grid-row:1}.admin-mailbox-count{min-width:75px;min-height:75px}}
+
+
+/* Adjuntos del formulario Contacto y del buzón administrativo. */
+.contact-form input[type="file"]{padding:10px;background:#fffdf8;border-style:dashed;cursor:pointer}.contact-form .field-optional{font-weight:400;color:var(--muted);font-size:.9em}
+.admin-mailbox-attachments{display:grid;gap:10px;margin-top:14px;padding:14px;border:1px solid #ded5bf;border-radius:12px;background:#fffdf8;color:var(--ink);font-size:12px}
+.admin-mailbox-attachments>div{display:flex;flex-wrap:wrap;gap:8px}
+.admin-mailbox-attachment-link{display:inline-flex;align-items:center;gap:7px;max-width:100%;padding:9px 12px;border:1px solid #d8c89f;border-radius:9px;background:#f8f5ed;color:#51462b;font-weight:600;overflow-wrap:anywhere;text-decoration:none}
+.admin-mailbox-attachment-link:hover,.admin-mailbox-attachment-link:focus{background:#eee5d1;text-decoration:underline}
