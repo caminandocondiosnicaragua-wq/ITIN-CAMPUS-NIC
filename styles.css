@@ -1155,3 +1155,17 @@ button, .button {
 
 /* Buzón: acceso a mensajes archivados */
 #admin-mailbox-archived-toggle { white-space: nowrap; }
+
+/* Ajustes visuales del buzón: acciones agrupadas y panel de lista compacto. */
+.admin-mailbox-list-panel{background:#fffdf8;color:var(--ink)}
+.admin-mailbox-list{background:#39432e}
+.admin-mailbox-toolbar-actions .admin-mailbox-delete{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid #b9c8a6;border-radius:999px;padding:10px 16px;background:#eaf1e3;color:#34472c;font:inherit;font-size:12px;font-weight:700;cursor:pointer}
+.admin-mailbox-toolbar-actions .admin-mailbox-delete:hover{background:#dce9d1}
+.admin-mailbox-toolbar-actions .admin-mailbox-print-action{border-color:#d7c18a;background:#f7edcf;color:#71551d}
+.admin-mailbox-toolbar-actions .admin-mailbox-print-action:hover{background:#efe0ad}
+.admin-mailbox-toolbar-actions .admin-mailbox-archived-toggle{border-color:#b9c8a6;background:#eaf1e3;color:#34472c}
+.admin-mailbox-toolbar-actions .admin-mailbox-archived-toggle:hover{background:#dce9d1}
+.admin-mailbox-toolbar-actions .admin-mailbox-refresh-action{border-color:#d7c18a;background:#fff8e8;color:#594c2f}
+.admin-mailbox-toolbar-actions .admin-mailbox-refresh-action:hover{background:#f4e8c9}
+.admin-mailbox-detail-actions{display:none}
+@media(max-width:700px){.admin-mailbox-toolbar{align-items:flex-start;flex-direction:column}.admin-mailbox-toolbar-actions{width:100%}.admin-mailbox-toolbar-actions button{flex:1}}
