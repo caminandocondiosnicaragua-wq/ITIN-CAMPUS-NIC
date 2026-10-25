@@ -1108,3 +1108,10 @@ button, .button {
 .admin-mailbox-item-title-row>strong{min-width:0;flex:1}
 .admin-mailbox-attachment-indicator{display:inline-flex;flex:0 0 auto;align-items:center;justify-content:center;width:27px;height:27px;border:1px solid #d8c89f;border-radius:8px;background:#f5e8c7;color:#39432e;font-size:16px;line-height:1}
 .admin-mailbox-item.is-selected .admin-mailbox-attachment-indicator{background:#fff3cf;border-color:#e4d5ad}
+
+
+/* El contador compacto debe conservar una cifra legible también con 0 o 1 dígito. */
+.admin-mailbox-toggle-count{display:inline-flex;align-items:center;justify-content:center;gap:5px;min-width:84px}
+.admin-mailbox-toggle-count span{min-width:1.2em;text-align:center;font-size:26px;font-weight:900;line-height:1;color:#b4231d;font-variant-numeric:tabular-nums}
+.admin-mailbox-toggle-count[hidden]{display:none!important}
+@media(max-width:520px){.admin-mailbox-toggle-count{min-width:70px}.admin-mailbox-toggle-count span{font-size:22px}}
